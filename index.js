@@ -409,7 +409,7 @@ class Ucard extends Number {
       "11": 'J',
       "12": 'Q',
       "13": 'K',
-      "0": 'X',
+      "0": '🃏',
     }[rank] || rank.toString();
 
     return rankStr;
