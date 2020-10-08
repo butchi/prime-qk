@@ -224,20 +224,17 @@ class CardBuffer extends ArrayBuffer {
     this.length = arr.length;
 
     for (let i = 0; i < arr.length; i += 4) {
-      const c0 = (arr[i] || 0).valueOf();
-      const c1 = (arr[i + 1] || 0).valueOf();
-      const c2 = (arr[i + 2] || 0).valueOf();
-      const c3 = (arr[i + 3] || 0).valueOf();
+      let c = 0;
 
-      const c = (c3 << 18) + (c2 << 12) + (c1 << 6) + c0;
+      for (let j = 3; j >= 0; j--) {
+        c <<= 6;
+        c += (arr[i + j] || 0).valueOf();
+      }
 
-      const val0 = c & 0xff;
-      const val1 = (c >> 8) & 0xff;
-      const val2 = (c >> 16) & 0xff;
-
-      this.view.setUint8(i * 3, val0, true);
-      this.view.setUint8(i * 3 + 1, val1, true);
-      this.view.setUint8(i * 3 + 2, val2, true);
+      for (let j = 0; j < 3; j++) {
+        const val = (c >> (j * 8)) & 0xff;
+        this.view.setUint8(i * 3 + j, val, true);
+      }
     };
   }
 
@@ -251,16 +248,17 @@ class CardBuffer extends ArrayBuffer {
     const byteLen = this.byteLength;
 
     for (let i = 0; i < byteLen; i += 3) {
-      const c0 = this.view.getUint8(i);
-      const c1 = this.view.getUint8(i + 1);
-      const c2 = this.view.getUint8(i + 2);
+      let c = 0;
 
-      const c = (c2 << 16) + (c1 << 8) + c0;
+      for (let j = 2; j >= 0; j--) {
 
-      ret[i * 4] = c % 64;
-      ret[i * 4 + 1] = (c >> 6) % 64;
-      ret[i * 4 + 2] = (c >> 12) % 64;
-      ret[i * 4 + 3] = (c >> 18) % 64;
+        c <<= 8;
+        c += this.view.getUint8(i + j);
+      }
+
+      for (let j = 0; j < 4; j++) {
+        ret[i * 4 + j] = (c >> (j * 6)) % 64;
+      }
     }
 
     ret.length = this.length;
