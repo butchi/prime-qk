@@ -146,7 +146,7 @@ class Card extends Number {
       "1": '♢',
       "2": '♡',
       "3": '♠',
-      "4": 'X',
+      "4": '🃏',
     }[suitInt];
 
     let rankStr = {
@@ -157,7 +157,7 @@ class Card extends Number {
     }[rankInt] || rankInt;
 
     if (this.isJoker()) {
-      return 'X' + (this.valueOf() % 13 + 1);
+      return '🃏' + ((this.valueOf() - 1) % 13 + 1);
     }
 
     return suitStr + rankStr;
