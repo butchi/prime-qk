@@ -73,6 +73,41 @@ suitArr.concat('joker').forEach((v, i) => {
 });
 
 
+const parseCard = str => {
+  let ret;
+
+  const suitStr = (str.match(/[A-Z]+|joker/i) || [''])[0].toUpperCase() || '';
+  const rankStr = (str.match(/[A1-9TJQK]$|1[0-3]$/i) || [''])[0].toUpperCase() || '';
+
+  const suitInt = {
+    "C": 0,
+    "D": 1,
+    "H": 2,
+    "S": 3,
+    "J": 4,
+    "X": 4,
+  }[suitStr[0]];
+
+  const rankInt = {
+    "A": 1,
+    "J": 11,
+    "Q": 12,
+    "K": 13,
+  }[rankStr] || Number(rankStr);
+
+  if ((suitInt !== undefined) && (rankInt !== undefined)) {
+    ret = suitInt * 13 + rankInt;
+
+    return ret;
+  }
+};
+
+const parseCardArray = str => {
+  const cardStrArr = str.split(/([CDHSX]1?[A1-9TJQK])/i).filter(str => str.length > 0);
+
+  return cardStrArr.map(cardStr => parseCard(cardStr));
+};
+
 const compareCard = (a, b) => {
   if (a.rankOf() < b.rankOf()) {
     return -1;
@@ -93,7 +128,7 @@ const compareCard = (a, b) => {
 
 class Card extends Number {
   constructor(...args) {
-    let value = NaN;
+    let value = 0;
 
     if (args.length === 0) {
     } else if (args.length === 1) {
@@ -106,20 +141,20 @@ class Card extends Number {
       } else if (typeof arg === 'string') {
         const cardStr = arg;
 
-        value = Card.parse(cardStr);
+        value = parseCard(cardStr);
       } else if (typeof arg === 'number') {
         value = arg;
       } else {
       }
     } else if (args.length === 2) {
-      value = args[0] * 13 + args[1] - 1;
+      value = args[0] * 13 + args[1];
     }
 
     super(value);
   }
 
   suitOf() {
-    return Math.floor(this.valueOf() / 13);
+    return Math.floor((this.valueOf() - 1) / 13);
   }
 
   isJoker() {
@@ -131,7 +166,7 @@ class Card extends Number {
       return Infinity;
     }
 
-    return this.valueOf() % 13 + 1;
+    return (this.valueOf() - 1) % 13 + 1;
   }
 
   toString() {
@@ -164,38 +199,13 @@ class Card extends Number {
   }
 }
 
-Card.parse = str => {
-  let ret;
 
-  const suitStr = (str.match(/[A-Z]+|joker/i) || [''])[0].toUpperCase() || '';
-  const rankStr = (str.match(/[A1-9TJQK]$|1[0-3]$/i) || [''])[0].toUpperCase() || '';
-
-  const suitInt = {
-    "C": 0,
-    "D": 1,
-    "H": 2,
-    "S": 3,
-    "J": 4,
-    "X": 4,
-  }[suitStr[0]];
-
-  const rankInt = {
-    "A": 1,
-    "J": 11,
-    "Q": 12,
-    "K": 13,
-  }[rankStr] || Number(rankStr);
-
-  if ((suitInt !== undefined) && (rankInt !== undefined)) {
-    ret = suitInt * 13 + rankInt - 1;
-
-    return ret;
-  }
-}
-
-
-class CardArray extends Float64Array {
+class CardBuffer extends ArrayBuffer {
   constructor(arg) {
+    super(3);
+
+    this.view = new DataView(this);
+
     let arr = [];
 
     if (arg === undefined) {
@@ -208,27 +218,59 @@ class CardArray extends Float64Array {
     } else if (typeof arg === 'string') {
       const cardStr = arg;
 
-      super(CardArray.parse(cardStr));
-
-      return;
+      arr = parseCardArray(cardStr);
     }
 
-    super(arr.map(c => c.valueOf()));
+    this.length = arr.length;
+
+    for (let i = 0; i < arr.length; i += 4) {
+      const c0 = (arr[i] || 0).valueOf();
+      const c1 = (arr[i + 1] || 0).valueOf();
+      const c2 = (arr[i + 2] || 0).valueOf();
+      const c3 = (arr[i + 3] || 0).valueOf();
+
+      const c = (c3 << 18) + (c2 << 12) + (c1 << 6) + c0;
+
+      const val0 = c & 0xff;
+      const val1 = (c >> 8) & 0xff;
+      const val2 = (c >> 16) & 0xff;
+
+      this.view.setUint8(i * 3, val0, true);
+      this.view.setUint8(i * 3 + 1, val1, true);
+      this.view.setUint8(i * 3 + 2, val2, true);
+    };
   }
 
   shuffle() {
     return this.sort(_ => Math.random() - .5);
   }
 
-  toString() {
-    return Array.from(this).map(n => new Card(n)).toString();
+  toArray() {
+    const ret = [];
+
+    const byteLen = this.byteLength;
+
+    for (let i = 0; i < byteLen; i += 3) {
+      const c0 = this.view.getUint8(i);
+      const c1 = this.view.getUint8(i + 1);
+      const c2 = this.view.getUint8(i + 2);
+
+      const c = (c2 << 16) + (c1 << 8) + c0;
+
+      ret[i * 4] = c % 64;
+      ret[i * 4 + 1] = (c >> 6) % 64;
+      ret[i * 4 + 2] = (c >> 12) % 64;
+      ret[i * 4 + 3] = (c >> 18) % 64;
+    }
+
+    ret.length = this.length;
+
+    return ret;
   }
-}
 
-CardArray.parse = str => {
-  const cardStrArr = str.split(/([CDHSX]1?[A1-9TJQK])/i).filter(str => str.length > 0);
-
-  return cardStrArr.map(cardStr => Card.parse(cardStr));
+  toString() {
+    return this.toArray().map(v => new Card(v)).toString();
+  }
 }
 
 
@@ -256,7 +298,7 @@ class CardComb extends Number {
       } else if (typeof arg === 'string') {
         const cardArrStr = arg;
 
-        set = new Set(CardArray.parse(cardArrStr));
+        set = new Set(parseCardArray(cardArrStr));
       } else if (typeof arg === 'number') {
         value = arg;
 
@@ -356,6 +398,27 @@ Card.randomSample = n => {
 };
 
 
+const parseUcard = str => {
+  let ret = NaN;
+
+  const rankStr = (str.match(/[0-9ATJQKX]+/i) || [''])[0].toUpperCase() || '';
+
+  const rankInt = parseInt({
+    "A": '1',
+    "T": '10',
+    "J": '11',
+    "Q": '12',
+    "K": '13',
+    "X": '0',
+  }[rankStr] || rankStr);
+
+  if (rankInt >= 0 && rankInt <= 13) {
+    ret = rankInt;
+  }
+
+  return ret;
+};
+
 const compareUcard = (a, b) => {
   if (a.rankOf() < b.rankOf()) {
     return -1;
@@ -371,22 +434,26 @@ const compareUcard = (a, b) => {
 // Unsuit-card
 class Ucard extends Number {
   constructor(arg) {
-    let value = 0;
+    let value = NaN;
 
     if (arg instanceof Ucard) {
       const ucard = arg;
 
       value = ucard.valueOf();
     } else if (typeof arg === 'string') {
+      const ucardStr = arg;
+
+      value = parseUcard(ucardStr);
+    } else if (typeof arg === 'number'){
       const ucardInt = arg;
 
-      value = Ucard.parse(ucardInt) - 1;
-    } else if (typeof arg === 'number'){
-      if (arg === Infinity) {
+      if (ucardInt === Infinity) {
         value = -1;
       }
 
-      value = arg - 1;
+      if (ucardInt > 0 && ucardInt <= 13) {
+        value = arg;
+      }
     } else {
     }
 
@@ -397,12 +464,12 @@ class Ucard extends Number {
     if (this.valueOf() === -1) {
       return Infinity;
     } else {
-      return this.valueOf() + 1;
+      return this.valueOf();
     }
   }
 
   toString() {
-    const rank = this.valueOf() + 1;
+    const rank = this.valueOf();
 
     const rankStr = {
       "1": 'A',
@@ -416,26 +483,19 @@ class Ucard extends Number {
   }
 }
 
-Ucard.parse = str => {
-  const rankStr = (str.match(/[0-9ATJQKX]+/i) || [''])[0].toUpperCase() || '';
 
-  const rankInt = parseInt({
-    "A": '1',
-    "T": '10',
-    "J": '11',
-    "Q": '12',
-    "K": '13',
-    "X": '0',
-  }[rankStr] || rankStr);
+const parseUcardArray = str => {
+  const ucardStrArr = str.split('');
 
-  if (rankInt >= 0 && rankInt <= 13) {
-    return rankInt;
-  }
+  return ucardStrArr.map(ucardStr => parseUcard(ucardStr));
 };
 
-
-class UcardArray extends Uint32Array {
+class UcardBuffer extends ArrayBuffer {
   constructor(arg) {
+    super(4);
+
+    this.view = new DataView(this);
+
     let arr = [];
 
     if (arg === undefined) {
@@ -448,27 +508,57 @@ class UcardArray extends Uint32Array {
     } else if (typeof arg === 'string') {
       const ucardStr = arg;
 
-      super(UcardArray.parse(ucardStr));
-
-      return;
+      arr = parseUcardArray(ucardStr);
     }
 
-    super(arr.map(c => c.valueOf()));
+    this.length = arr.length;
+
+    for (let i = 0; i < arr.length; i += 4) {
+      let c = 0;
+
+      for (let j = 7; j >= 0; j--) {
+        c <<= 6;
+        c += (arr[i + j] || 0).valueOf();
+      }
+
+      for (let j = 0; j < 4; j++) {
+        const val = (c >> (j * 8)) & 0xff;
+        this.view.setUint8(i * 3 + j, val, true);
+      }
+    };
   }
 
   shuffle() {
     return this.sort(_ => Math.random() - .5);
   }
 
-  toString() {
-    return Array.from(this).map(n => new Ucard(n)).toString();
+  toArray() {
+    const ret = [];
+
+    const byteLen = this.byteLength;
+
+    for (let i = 0; i < byteLen; i += 8) {
+      let c = 0;
+
+      for (let j = 3; j >= 0; j--) {
+
+        c <<= 8;
+        c += this.view.getUint8(i + j);
+      }
+
+      for (let j = 0; j < 4; j++) {
+        ret[i * 4 + j] = (c >> (j * 6)) % 64;
+      }
+    }
+
+    ret.length = this.length;
+
+    return ret;
   }
-}
 
-UcardArray.parse = str => {
-  const ucardStrArr = str.split('');
-
-  return cardStrArr.map(cardStr => Card.parse(cardStr));
+  toString() {
+    return this.toArray().map(v => new Ucard(v)).toString();
+  }
 }
 
 
