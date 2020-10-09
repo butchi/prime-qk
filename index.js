@@ -161,6 +161,12 @@ class Card extends Number {
     return this.suitOf() === suit.joker;
   }
 
+  jokerIndex() {
+    if (this.isJoker()) {
+      return (this.valueOf() - 1) % 13 + 1;
+    }
+  }
+
   rankOf() {
     if (this.isJoker()) {
       return Infinity;
@@ -192,7 +198,7 @@ class Card extends Number {
     }[rankInt] || rankInt;
 
     if (this.isJoker()) {
-      return '🃏' + ((this.valueOf() - 1) % 13 + 1);
+      return '🃏' + this.jokerIndex();
     }
 
     return suitStr + rankStr;
@@ -445,11 +451,11 @@ class Ucard extends Number {
     } else if (typeof arg === 'number'){
       const ucardInt = arg;
 
-      if (ucardInt === Infinity) {
-        value = -1;
+      if (ucardInt === -1 || ucardInt === 15) {
+        value = 15;
       }
 
-      if (ucardInt > 0 && ucardInt <= 13) {
+      if (ucardInt >= 0 && ucardInt <= 13) {
         value = arg;
       }
     } else {
@@ -459,7 +465,7 @@ class Ucard extends Number {
   }
 
   rankOf() {
-    if (this.valueOf() === -1) {
+    if (this.valueOf() === 15) {
       return Infinity;
     } else {
       return this.valueOf();
@@ -470,11 +476,12 @@ class Ucard extends Number {
     const rank = this.valueOf();
 
     const rankStr = {
+      "0": '',
       "1": 'A',
       "11": 'J',
       "12": 'Q',
       "13": 'K',
-      "0": '🃏',
+      "15": '🃏',
     }[rank] || rank.toString();
 
     return rankStr;
@@ -602,7 +609,7 @@ class UcardComb extends Number {
     set.forEach(c => {
       const v = c.valueOf() + 1;
 
-      tallyArr[v]++;
+      tallyArr[v === 15 ? 0 : v]++;
     });
 
     tallyArr.reverse();
@@ -618,9 +625,10 @@ class UcardComb extends Number {
     const str = ((new Array(14)).fill('0').join('') + this.valueOf().toString(5)).slice(-14);
 
     const setArr = str.split('').reverse().map(v => Number(v));
+    setArr.forEach((len, i) => {
+      for (let j = 0; j < len; j++) {
+        const rank = i === 0 ? 15 : i;
 
-    setArr.forEach((len, rank) => {
-      for (let i = 0; i < len; i++) {
         const ucard = new Ucard(rank);
 
         ret.add(ucard);
