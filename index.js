@@ -109,16 +109,16 @@ const parseCardArray = str => {
 };
 
 const compareCard = (a, b) => {
-  if (a.rankOf() < b.rankOf()) {
+  if (a.rank < b.rank) {
     return -1;
   }
-  if (a.rankOf() > b.rankOf()) {
+  if (a.rank > b.rank) {
     return 1;
   }
-  if (a.suitOf() < b.suitOf()) {
+  if (a.suit < b.suit) {
     return -1;
   }
-  if (a.suitOf() > b.suitOf()) {
+  if (a.suit > b.suit) {
     return 1;
   }
   if (a.valueOf() === b.valueOf()) {
@@ -151,36 +151,22 @@ class Card extends Number {
     }
 
     super(value);
-  }
 
-  suitOf() {
-    return Math.floor((this.valueOf() - 1) / 13);
-  }
+    this.suit = Math.floor((value - 1) / 13);
 
-  isJoker() {
-    return this.suitOf() === suit.joker;
-  }
+    this.index = (value - 1) % 13 + 1;
 
-  jokerIndex() {
-    if (this.isJoker()) {
-      return (this.valueOf() - 1) % 13 + 1;
-    }
-  }
-
-  rankOf() {
-    if (this.isJoker()) {
-      return Infinity;
-    }
-
-    return (this.valueOf() - 1) % 13 + 1;
+    this.joker = this.suit === suit.joker ? this.index : null;
+  
+    this.rank = this.joker ? Infinity : this.index;
   }
 
   toString() {
     // const str = ('0' + this.valueOf().toString(13)).slice(-2);
     // const rank = parseInt(str[1], 13) + 1;
 
-    const suitInt = this.suitOf();
-    const rankInt = this.rankOf();
+    const suitInt = this.suit;
+    const rankInt = this.rank;
 
     const suitStr = {
       "0": '♣',
@@ -197,8 +183,8 @@ class Card extends Number {
       "13": 'K',
     }[rankInt] || rankInt;
 
-    if (this.isJoker()) {
-      return '🃏' + this.jokerIndex();
+    if (this.joker) {
+      return '🃏' + this.joker;
     }
 
     return suitStr + rankStr;
@@ -331,8 +317,8 @@ class CardComb extends Number {
     set.forEach(item => {
       const c = new Card(item);
 
-      if (c.isJoker()) {
-        jokerSetArr[c.jokerIndex() - 1]++;
+      if (c.joker) {
+        jokerSetArr[c.joker - 1]++;
       } else {
         setArr[c.valueOf() - 1]++;
       }
@@ -434,10 +420,10 @@ const parseUcard = str => {
 };
 
 const compareUcard = (a, b) => {
-  if (a.rankOf() < b.rankOf()) {
+  if (a.rank < b.rank) {
     return -1;
   }
-  if (a.rankOf() > b.rankOf()) {
+  if (a.rank > b.rank) {
     return 1;
   }
   if (a.valueOf() === b.valueOf()) {
@@ -474,14 +460,8 @@ class Ucard extends Number {
     }
 
     super(value);
-  }
 
-  rankOf() {
-    if (this.valueOf() === 15) {
-      return Infinity;
-    } else {
-      return this.valueOf();
-    }
+    this.rank = (value === 15) ? Infinity : value;
   }
 
   toString() {
@@ -668,3 +648,5 @@ class UcardComb extends Number {
     return Array.from(this.toSet()).sort(compareUcard).toString();
   }
 }
+
+console.log(new Card(-1));
