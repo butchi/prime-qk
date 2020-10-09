@@ -66,10 +66,10 @@ const UCARD_EVEN = parseInt(`0404040404040`, 5);
 
 const suitArr = ['club', 'diamond', 'heart', 'spade'];
 
-const suit = {};
+const SUIT = {};
 
 suitArr.concat('joker').forEach((v, i) => {
-  suit[v] = i;
+  SUIT[v] = i;
 });
 
 
@@ -79,7 +79,7 @@ const parseCard = str => {
   const suitStr = (str.match(/[A-Z]+|joker/i) || [''])[0].toUpperCase() || '';
   const rankStr = (str.match(/[A1-9TJQK]$|1[0-3]$/i) || [''])[0].toUpperCase() || '';
 
-  const suitInt = {
+  const suit = {
     "C": 0,
     "D": 1,
     "H": 2,
@@ -88,18 +88,20 @@ const parseCard = str => {
     "X": 4,
   }[suitStr[0]];
 
-  const rankInt = {
+  const index = {
     "A": 1,
     "J": 11,
     "Q": 12,
     "K": 13,
   }[rankStr] || Number(rankStr);
 
-  if ((suitInt !== undefined) && (rankInt !== undefined)) {
-    ret = suitInt * 13 + rankInt;
-
-    return ret;
+  if (suit === SUIT.joker && index > 0 && index <= 2) {
+    ret = 2 ** 6 - index;
+  } else if (suit < 4 && index > 0 && index <= 13){
+    ret = suit * 13 + index;
   }
+
+  return ret;
 };
 
 const parseCardArray = str => {
@@ -128,13 +130,16 @@ const compareCard = (a, b) => {
 
 class Card extends Number {
   constructor(...args) {
-    let value = 0;
+    let value = NaN;
 
     if (args.length === 0) {
+      value = 0;
     } else if (args.length === 1) {
       const arg = args[0];
 
-      if (arg instanceof Card) {
+      if (arg === undefined) {
+        value = 0;
+      } else if (arg instanceof Card) {
         const card = arg;
 
         value = card.valueOf();
@@ -143,21 +148,37 @@ class Card extends Number {
 
         value = parseCard(cardStr);
       } else if (typeof arg === 'number') {
-        value = arg;
+        const cardInt = arg;
+
+        if (cardInt === 0) {
+        } else if (cardInt === ((-1) & 0b111111) || cardInt === -1) {
+          value = (-1) & 0b111111; // => 63
+        } else if (cardInt === ((-2) & 0b111111) || cardInt === -2) {
+          value = (-2) & 0b111111; // => 62
+        } else if (cardInt > 0 && cardInt <= 52) {
+          value = cardInt;
+        }
       } else {
       }
     } else if (args.length === 2) {
-      value = args[0] * 13 + args[1];
+      const suit = args[0];
+      const index = args[1];
+
+      if (suit === SUIT.joker && index > 0 && index <= 2) {
+        value = 2 ** 6 - index;
+      } else if (suit < 4 && index > 0 && index <= 13){
+        value = suit * 13 + index;
+      }
     }
 
     super(value);
 
     this.suit = Math.floor((value - 1) / 13);
 
-    this.index = (value - 1) % 13 + 1;
+    this.joker = this.suit === SUIT.joker ? (2 ** 6 - value) : null;
 
-    this.joker = this.suit === suit.joker ? this.index : null;
-  
+    this.index = this.joker ? this.joker : (value - 1) % 13 + 1;
+
     this.rank = this.joker ? Infinity : this.index;
   }
 
@@ -165,23 +186,20 @@ class Card extends Number {
     // const str = ('0' + this.valueOf().toString(13)).slice(-2);
     // const rank = parseInt(str[1], 13) + 1;
 
-    const suitInt = this.suit;
-    const rankInt = this.rank;
-
     const suitStr = {
       "0": '♣',
       "1": '♢',
       "2": '♡',
       "3": '♠',
       "4": '🃏',
-    }[suitInt];
+    }[this.suit];
 
     let rankStr = {
       "1": 'A',
       "11": 'J',
       "12": 'Q',
       "13": 'K',
-    }[rankInt] || rankInt;
+    }[this.rank] || this.rank;
 
     if (this.joker) {
       return '🃏' + this.joker;
@@ -401,19 +419,23 @@ Card.randomSample = n => {
 const parseUcard = str => {
   let ret = NaN;
 
-  const rankStr = (str.match(/[0-9ATJQKX]+/i) || [''])[0].toUpperCase() || '';
+  const char = (str.match(/[0-9ATJQKX]+/i) || [''])[0].toUpperCase() || '';
 
-  const rankInt = parseInt({
+  const int = parseInt({
     "A": '1',
     "T": '10',
     "J": '11',
     "Q": '12',
     "K": '13',
-    "X": '0',
-  }[rankStr] || rankStr);
+    "X": '-1',
+  }[char] || char);
 
-  if (rankInt >= 0 && rankInt <= 13) {
-    ret = rankInt;
+  if (int === 0) {
+    ret = 0;
+  } else if (int === -1) {
+    ret = (-1) & 0b1111;
+  } else if (int > 0 && int <= 13) {
+    ret = int;
   }
 
   return ret;
@@ -446,14 +468,14 @@ class Ucard extends Number {
       const ucardStr = arg;
 
       value = parseUcard(ucardStr);
-    } else if (typeof arg === 'number'){
+    } else if (typeof arg === 'number') {
       const ucardInt = arg;
 
-      if (ucardInt === -1 || ucardInt === 15) {
-        value = 15;
-      }
-
-      if (ucardInt >= 0 && ucardInt <= 13) {
+      if (ucardInt === 0) {
+        value = 0;
+      } else if (ucardInt === ((-1) & 0b1111) || ucardInt === -1) {
+        value = (-1) & 0b1111; // => 15
+      } else if (ucardInt > 0 && ucardInt <= 13) {
         value = arg;
       }
     } else {
@@ -461,7 +483,7 @@ class Ucard extends Number {
 
     super(value);
 
-    this.rank = (value === 15) ? Infinity : value;
+    this.rank = (value === ((-1) & 0b1111)) ? Infinity : value;
   }
 
   toString() {
@@ -610,7 +632,7 @@ class UcardComb extends Number {
     set.forEach(item => {
       const v = item.valueOf();
 
-      tallyArr[v === 15 ? 0 : v]++;
+      tallyArr[v === ((-1) & 0b1111) ? 0 : v]++;
     });
 
     tallyArr.reverse();
@@ -629,7 +651,7 @@ class UcardComb extends Number {
 
     setArr.forEach((len, i) => {
       for (let j = 0; j < len; j++) {
-        const rank = i === 0 ? 15 : i;
+        const rank = i === 0 ? ((-1) & 0b1111) : i;
 
         const ucard = new Ucard(rank);
 
@@ -648,5 +670,3 @@ class UcardComb extends Number {
     return Array.from(this.toSet()).sort(compareUcard).toString();
   }
 }
-
-console.log(new Card(-1));
