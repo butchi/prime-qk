@@ -208,10 +208,6 @@ class Card extends Number {
 
 class CardBuffer extends ArrayBuffer {
   constructor(arg) {
-    super(3);
-
-    this.view = new DataView(this);
-
     let arr = [];
 
     if (arg === undefined) {
@@ -227,21 +223,32 @@ class CardBuffer extends ArrayBuffer {
       arr = parseCardArray(cardStr);
     }
 
-    this.length = arr.length;
+    const len = arr.length;
 
-    for (let i = 0; i < arr.length; i += 4) {
+    const byteLen = Math.ceil(len * 6 / 8);
+
+    super(byteLen);
+
+    this.length = len;
+
+    this.view = new DataView(this);
+
+    for (let i = 0; i * 4 < arr.length; i++) {
       let c = 0;
 
       for (let j = 3; j >= 0; j--) {
         c <<= 6;
-        c += (arr[i + j] || 0).valueOf();
+        c += (arr[i * 4 + j] || 0).valueOf();
       }
 
       for (let j = 0; j < 3; j++) {
         const val = (c >> (j * 8)) & 0xff;
-        this.view.setUint8(i * 3 + j, val, true);
+  
+        if (i * 3 + j < byteLen) {
+          this.view.setUint8(i * 3 + j, val, true);
+        }
       }
-    };
+    }
   }
 
   shuffle() {
@@ -253,13 +260,15 @@ class CardBuffer extends ArrayBuffer {
 
     const byteLen = this.byteLength;
 
-    for (let i = 0; i < byteLen; i += 3) {
+    for (let i = 0; i * 3 < byteLen; i++) {
       let c = 0;
 
       for (let j = 2; j >= 0; j--) {
-
         c <<= 8;
-        c += this.view.getUint8(i + j);
+
+        if (i * 3 + j < byteLen) {
+          c += this.view.getUint8(i * 3 + j);
+        }
       }
 
       for (let j = 0; j < 4; j++) {
@@ -319,12 +328,13 @@ class CardComb extends Number {
     const setArr = new Array(52).fill(0);
     const jokerSetArr = new Array(2).fill(0);
 
-    set.forEach(c => {
-      const v = c.valueOf();
-      if (Math.floor(v / 13) === 4) {
-        jokerSetArr[v % 13]++;
+    set.forEach(item => {
+      const c = new Card(item);
+
+      if (c.isJoker()) {
+        jokerSetArr[c.jokerIndex() - 1]++;
       } else {
-        setArr[v]++;
+        setArr[c.valueOf() - 1]++;
       }
     });
 
@@ -351,13 +361,13 @@ class CardComb extends Number {
 
     const normalSetStr = ((new Array(54)).fill('0').join('') + str.replace(regExp, '')).slice(-52);
 
-    const jokerSetStr = '0' + (str.match(regExp)[0].length - 1).toString(2).slice(-2);
+    const jokerSetStr = '0' + ((str.match(regExp) || [''])[0].length - 1).toString(2).slice(-2);
 
     const setArr = (jokerSetStr + normalSetStr).split('').reverse().map(v => Boolean(Number(v)));
 
     setArr.forEach((v, i) => {
       if (v) {
-        const card = new Card(i);
+        const card = new Card(i + 1);
 
         ret.add(card);
       }
@@ -440,7 +450,9 @@ class Ucard extends Number {
   constructor(arg) {
     let value = NaN;
 
-    if (arg instanceof Ucard) {
+    if (arg === undefined) {
+      value = 0;
+    } else if (arg instanceof Ucard) {
       const ucard = arg;
 
       value = ucard.valueOf();
@@ -497,10 +509,6 @@ const parseUcardArray = str => {
 
 class UcardBuffer extends ArrayBuffer {
   constructor(arg) {
-    super(4);
-
-    this.view = new DataView(this);
-
     let arr = [];
 
     if (arg === undefined) {
@@ -516,19 +524,30 @@ class UcardBuffer extends ArrayBuffer {
       arr = parseUcardArray(ucardStr);
     }
 
-    this.length = arr.length;
+    const len = arr.length;
 
-    for (let i = 0; i < arr.length; i += 4) {
+    const byteLen = Math.ceil(len * 4 / 8);
+
+    super(byteLen);
+
+    this.length = len;
+
+    this.view = new DataView(this);
+
+    for (let i = 0; i * 8 < arr.length; i++) {
       let c = 0;
 
       for (let j = 7; j >= 0; j--) {
-        c <<= 6;
-        c += (arr[i + j] || 0).valueOf();
+        c <<= 4;
+        c += (arr[i * 8 + j] || 0).valueOf();
       }
 
       for (let j = 0; j < 4; j++) {
         const val = (c >> (j * 8)) & 0xff;
-        this.view.setUint8(i * 3 + j, val, true);
+
+        if (i * 4 + j < byteLen) {
+          this.view.setUint8(i * 4 + j, val, true);
+        }
       }
     };
   }
@@ -542,17 +561,19 @@ class UcardBuffer extends ArrayBuffer {
 
     const byteLen = this.byteLength;
 
-    for (let i = 0; i < byteLen; i += 8) {
+    for (let i = 0; i * 2 < byteLen; i++) {
       let c = 0;
 
-      for (let j = 3; j >= 0; j--) {
-
+      for (let j = 1; j >= 0; j--) {
         c <<= 8;
-        c += this.view.getUint8(i + j);
+
+        if (i * 2 + j < byteLen) {
+          c += this.view.getUint8(i * 2 + j);
+        }
       }
 
       for (let j = 0; j < 4; j++) {
-        ret[i * 4 + j] = (c >> (j * 6)) % 64;
+        ret[i * 4 + j] = (c >> (j * 4)) % 16;
       }
     }
 
@@ -606,8 +627,8 @@ class UcardComb extends Number {
 
     const tallyArr = new Array(14).fill(0);
 
-    set.forEach(c => {
-      const v = c.valueOf() + 1;
+    set.forEach(item => {
+      const v = item.valueOf();
 
       tallyArr[v === 15 ? 0 : v]++;
     });
@@ -624,7 +645,8 @@ class UcardComb extends Number {
 
     const str = ((new Array(14)).fill('0').join('') + this.valueOf().toString(5)).slice(-14);
 
-    const setArr = str.split('').reverse().map(v => Number(v));
+    const setArr = str.split('').map(v => Number(v));
+
     setArr.forEach((len, i) => {
       for (let j = 0; j < len; j++) {
         const rank = i === 0 ? 15 : i;
