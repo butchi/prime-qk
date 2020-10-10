@@ -69,9 +69,38 @@ const suitArr = ['club', 'diamond', 'heart', 'spade'];
 const SUIT = {};
 
 suitArr.concat('joker').forEach((v, i) => {
-  SUIT[v] = i;
+  SUIT[v.toUpperCase()] = i;
 });
 
+// 0: Zero
+// 1: Ace
+// 2: deUce
+// 3: treY
+// 4: cateR
+// 5: cInque
+// 6: sicE
+// 7: seVen
+// 8: eiGht
+// 9: Nine
+// 10: Ten
+// 11: Jack
+// 12: Queen
+// 13: King
+const rankArr = ['z', 'a', 'u', 'y', 'r', 'i', 'e', 'v', 'g', 'n', 't', 'j', 'q', 'k', 'o', 'x'];
+
+const RANK = {};
+
+rankArr.forEach((v, i) => {
+  RANK[v.toUpperCase()] = i;
+});
+
+
+const CARD = {
+  BLANK: 0,
+  UNDEFINED: 47,
+  JOKER2: 62,
+  JOKER1: 63,
+}
 
 const parseCard = str => {
   let ret;
@@ -80,25 +109,25 @@ const parseCard = str => {
   const rankStr = (str.match(/[A1-9TJQK]$|1[0-3]$/i) || [''])[0].toUpperCase() || '';
 
   const suit = {
-    "C": 0,
-    "D": 1,
-    "H": 2,
-    "S": 3,
-    "J": 4,
-    "X": 4,
+    C: 0,
+    D: 1,
+    H: 2,
+    S: 3,
+    J: 4,
+    X: 4,
   }[suitStr[0]];
 
   const index = {
-    "A": 1,
-    "J": 11,
-    "Q": 12,
-    "K": 13,
+    A: 1,
+    J: 11,
+    Q: 12,
+    K: 13,
   }[rankStr] || Number(rankStr);
 
-  if (suit === SUIT.joker && index > 0 && index <= 2) {
+  if (suit === SUIT.JOKER && index > 0 && index <= 2) {
     ret = 2 ** 6 - index;
   } else if (suit < 4 && index > 0 && index <= 13){
-    ret = suit * 13 + index;
+    ret = suit * 16 + index;
   }
 
   return ret;
@@ -130,15 +159,13 @@ const compareCard = (a, b) => {
 
 class Card extends Number {
   constructor(...args) {
-    let value = NaN;
+    let value = CARD.UNDEFINED;
 
     if (args.length === 0) {
-      value = 0;
     } else if (args.length === 1) {
       const arg = args[0];
 
       if (arg === undefined) {
-        value = 0;
       } else if (arg instanceof Card) {
         const card = arg;
 
@@ -150,13 +177,12 @@ class Card extends Number {
       } else if (typeof arg === 'number') {
         const cardInt = arg;
 
-        if (cardInt === 0) {
-        } else if (cardInt === ((-1) & 0b111111) || cardInt === -1) {
-          value = (-1) & 0b111111; // => 63
-        } else if (cardInt === ((-2) & 0b111111) || cardInt === -2) {
-          value = (-2) & 0b111111; // => 62
-        } else if (cardInt > 0 && cardInt <= 52) {
+        if (cardInt >= 0 && cardInt <= 63 && Number.isInteger(cardInt)) {
           value = cardInt;
+        } else if (cardInt === -1) {
+          value = CARD.JOKER1;
+        } else if (cardInt === -2) {
+          value = CARD.JOKER2;
         }
       } else {
       }
@@ -164,27 +190,41 @@ class Card extends Number {
       const suit = args[0];
       const index = args[1];
 
-      if (suit === SUIT.joker && index > 0 && index <= 2) {
+      if (suit === SUIT.JOKER && index > 0 && index <= 2) {
         value = 2 ** 6 - index;
       } else if (suit < 4 && index > 0 && index <= 13){
-        value = suit * 13 + index;
+        value = suit * 16 + index;
       }
     }
 
     super(value);
 
-    this.suit = Math.floor((value - 1) / 13);
+    this.joker = value === CARD.JOKER1 ? 1 : value === CARD.JOKER2 ? 2 : null;
 
-    this.joker = this.suit === SUIT.joker ? (2 ** 6 - value) : null;
+    this.isValid = value === CARD.BLANK || value === CARD.UNDEFINED || this.joker || ((value - 1) % 16) < 13;
 
-    this.index = this.joker ? this.joker : (value - 1) % 13 + 1;
+    this.suit = (this.joker || value === CARD.BLANK || !this.isValid) ? null : Math.floor((value - 1) / 16);
 
-    this.rank = this.joker ? Infinity : this.index;
+    this.index = !this.isValid ? null : this.joker ? this.joker : (value - 1) % 16 + 1;
+
+    this.rank = !this.isValid ? null : this.joker ? Infinity : this.index;
   }
 
   toString() {
     // const str = ('0' + this.valueOf().toString(13)).slice(-2);
     // const rank = parseInt(str[1], 13) + 1;
+
+    if (this.valueOf() === CARD.BLANK) {
+      return '';
+    }
+
+    if (this.valueOf() === CARD.UNDEFINED) {
+      return '🂠';
+    }
+
+    if (!this.isValid) {
+      return '-';
+    }
 
     const suitStr = {
       "0": '♣',
@@ -415,6 +455,17 @@ Card.randomSample = n => {
   }
 };
 
+// class CardCombArrays extends Float64Array {
+//   constructor(arg) {
+//     if (arg === undefined) {
+//     } else if (arg instanceof Array) {
+//       super(arr);
+//     } else if (typeof arg === 'number') {
+//       super(arg);
+//     }
+//   }
+// }
+
 
 const parseUcard = str => {
   let ret = NaN;
@@ -422,12 +473,12 @@ const parseUcard = str => {
   const char = (str.match(/[0-9ATJQKX]+/i) || [''])[0].toUpperCase() || '';
 
   const int = parseInt({
-    "A": '1',
-    "T": '10',
-    "J": '11',
-    "Q": '12',
-    "K": '13',
-    "X": '-1',
+    A: '1',
+    T: '10',
+    J: '11',
+    Q: '12',
+    K: '13',
+    X: '-1',
   }[char] || char);
 
   if (int === 0) {
@@ -453,13 +504,20 @@ const compareUcard = (a, b) => {
   }
 };
 
+UCARD = {
+  BLANK: 0,
+  UNDEFINED: 14,
+  JOKER: 15,
+};
+
 // Unsuit-card
 class Ucard extends Number {
   constructor(arg) {
-    let value = NaN;
+    let value = UCARD.UNDEFINED;
 
     if (arg === undefined) {
-      value = 0;
+    } else if (arg === null) {
+      value = UCARD.BLANK;
     } else if (arg instanceof Ucard) {
       const ucard = arg;
 
@@ -468,15 +526,13 @@ class Ucard extends Number {
       const ucardStr = arg;
 
       value = parseUcard(ucardStr);
-    } else if (typeof arg === 'number') {
+    } else if (typeof arg === 'number' && Number.isInteger(arg)) {
       const ucardInt = arg;
 
-      if (ucardInt === 0) {
-        value = 0;
-      } else if (ucardInt === ((-1) & 0b1111) || ucardInt === -1) {
-        value = (-1) & 0b1111; // => 15
-      } else if (ucardInt > 0 && ucardInt <= 13) {
+      if (ucardInt >= 0 && ucardInt <= 15) {
         value = arg;
+      } else if (ucardInt === -1) {
+        value = UCARD.JOKER;
       }
     } else {
     }
@@ -489,12 +545,16 @@ class Ucard extends Number {
   toString() {
     const rank = this.valueOf();
 
+    if (rank === 0) {
+      return '';
+    }
+
     const rankStr = {
-      "0": '',
       "1": 'A',
       "11": 'J',
       "12": 'Q',
       "13": 'K',
+      "14": '🂠',
       "15": '🃏',
     }[rank] || rank.toString();
 
@@ -670,3 +730,5 @@ class UcardComb extends Number {
     return Array.from(this.toSet()).sort(compareUcard).toString();
   }
 }
+
+console.log(new Card(64).toString());
