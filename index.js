@@ -455,16 +455,24 @@ Card.randomSample = n => {
   }
 };
 
-// class CardCombArrays extends Float64Array {
-//   constructor(arg) {
-//     if (arg === undefined) {
-//     } else if (arg instanceof Array) {
-//       super(arr);
-//     } else if (typeof arg === 'number') {
-//       super(arg);
-//     }
-//   }
-// }
+
+class CardCombArray extends Float64Array {
+  constructor(arg) {
+    if (arg === undefined) {
+    } else if (arg instanceof Array) {
+      const arr = arg;
+
+      super(arr);
+    } else if (typeof arg === 'number') {
+      super(arg);
+    }
+  }
+
+  toString() {
+    return Array.from(this).map(v => new Card(v)).toString();
+  }
+}
+
 
 
 const parseUcard = str => {
@@ -731,4 +739,19 @@ class UcardComb extends Number {
   }
 }
 
-console.log(new Card(64).toString());
+class UcardCombArray extends Uint32Array {
+  constructor(arg) {
+    if (arg === undefined) {
+    } else if (arg instanceof Array) {
+      const arr = arg;
+
+      super(arr);
+    } else if (typeof arg === 'number') {
+      super(arg);
+    }
+  }
+
+  toString() {
+    return Array.from(this).map(v => new Ucard(v)).toString();
+  }
+}
