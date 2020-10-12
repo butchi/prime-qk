@@ -403,19 +403,25 @@ class CardComb extends Number {
     const regExp = /10*$/;
     const str = this.valueOf().toString(2);
 
-    const normalSetStr = ((new Array(54)).fill('0').join('') + str.replace(regExp, '')).slice(-52);
+    const jokerSetStr = ((str.match(regExp) || [''])[0].length - 1).toString(2);
 
-    const jokerSetStr = '0' + ((str.match(regExp) || [''])[0].length - 1).toString(2).slice(-2);
+    for (let suit = 0; suit < 4; suit++) {
+      for (let rank = 0; rank < 13; rank++) {
+        if (str[suit * 4 + rank]) {
+          const card = new Card(suit, rank + 1);
 
-    const setArr = (jokerSetStr + normalSetStr).split('').reverse().map(v => Boolean(Number(v)));
+          ret.add(card);
+        }
+      }
+    }
 
-    setArr.forEach((v, i) => {
-      if (v) {
-        const card = new Card(i + 1);
+    for (let i = 0; i < 2; i++) {
+      if (jokerSetStr[i] === '1') {
+        const card = new Card(-(i + 1));
 
         ret.add(card);
       }
-    });
+    }
 
     return ret;
   }
