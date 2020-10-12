@@ -725,7 +725,7 @@ class UcardComb extends Number {
 
     setArr.forEach((len, i) => {
       for (let j = 0; j < len; j++) {
-        const rank = i === 0 ? ((-1) & 0b1111) : i;
+        const rank = i === 0 ? UCARD.JOKER : i;
 
         const ucard = new Ucard(rank);
 
