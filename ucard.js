@@ -30,7 +30,9 @@ export default class Ucard extends Number {
 
     super(value);
 
-    this.rank = (value === ((-1) & 0b1111)) ? Infinity : value;
+    this.joker = value === UCARD.JOKER;
+
+    this.rank = this.joker ? Infinity : value;
   }
 
   toString() {
