@@ -1,4 +1,4 @@
-import Card from './card.js';
+import CardComb from './card-comb.js';
 
 export default class CardCombArray extends Float64Array {
   constructor(arg) {
@@ -13,6 +13,6 @@ export default class CardCombArray extends Float64Array {
   }
 
   toString() {
-    return Array.from(this).map(v => new Card(v)).toString();
+    return Array.from(this).map(v => new CardComb(v)).toString();
   }
 }

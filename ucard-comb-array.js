@@ -1,4 +1,4 @@
-import Ucard from './ucard.js';
+import UcardComb from './ucard-comb.js';
 
 export default class UcardCombArray extends Uint32Array {
   constructor(arg) {
@@ -13,6 +13,6 @@ export default class UcardCombArray extends Uint32Array {
   }
 
   toString() {
-    return Array.from(this).map(v => new Ucard(v)).toString();
+    return Array.from(this).map(v => new UcardComb(v)).toString();
   }
 }
