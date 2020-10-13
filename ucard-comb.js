@@ -42,9 +42,7 @@ export default class UcardComb extends Number {
     const tallyArr = new Array(14).fill(0);
 
     set.forEach(item => {
-      const v = item.valueOf();
-
-      tallyArr[v === ((-1) & 0b1111) ? 0 : v]++;
+      tallyArr[item.joker ? 13 : item.rank - 1]++;
     });
 
     tallyArr.reverse();
@@ -59,11 +57,11 @@ export default class UcardComb extends Number {
 
     const str = ((new Array(14)).fill('0').join('') + this.valueOf().toString(5)).slice(-14);
 
-    const setArr = str.split('').map(v => Number(v));
+    const setArr = str.split('').reverse().map(v => Number(v));
 
     setArr.forEach((len, i) => {
       for (let j = 0; j < len; j++) {
-        const rank = i === 0 ? UCARD.JOKER : i;
+        const rank = i === 13 ? UCARD.JOKER : i + 1;
 
         const ucard = new Ucard(rank);
 

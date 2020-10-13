@@ -1,3 +1,4 @@
+import { SUIT } from './const.js';
 import Card from './card.js';
 import { compareCard } from './util.js';
 
@@ -19,7 +20,7 @@ export default class CardComb extends Number {
       } else if (arg instanceof Set) {
         set = arg;
       } else if (arg instanceof Array) {
-        const cardArr = args[0];
+        const cardArr = arg;
 
         set = new Set(cardArr);
       } else if (typeof arg === 'string') {
@@ -48,7 +49,7 @@ export default class CardComb extends Number {
       if (c.joker) {
         jokerSetArr[c.joker - 1]++;
       } else {
-        setArr[c.valueOf() - 1]++;
+        setArr[c.suit * 13 + c.rank - 1]++;
       }
     });
 
@@ -73,21 +74,26 @@ export default class CardComb extends Number {
     const regExp = /10*$/;
     const str = this.valueOf().toString(2);
 
-    const jokerSetStr = ((str.match(regExp) || [''])[0].length - 1).toString(2);
+    const normalSetStr = ((new Array(54)).fill('0').join('') + str.replace(regExp, '')).slice(-52);
 
-    for (let suit = 0; suit < 4; suit++) {
-      for (let rank = 0; rank < 13; rank++) {
-        if (str[suit * 4 + rank]) {
-          const card = new Card(suit, rank + 1);
+    const jokerSetStr = '0' + ((str.match(regExp) || [''])[0].length - 1).toString(2).slice(-2);
 
-          ret.add(card);
-        }
+    const normalSetArr = normalSetStr.split('').reverse().map(v => Boolean(Number(v)));
+
+    normalSetArr.forEach((v, i) => {
+      if (v) {
+        const suit = Math.floor(i / 13);
+        const rank = (i % 13) + 1;
+
+        const card = new Card(suit, rank);
+
+        ret.add(card);
       }
-    }
+    });
 
     for (let i = 0; i < 2; i++) {
       if (jokerSetStr[i] === '1') {
-        const card = new Card(-(i + 1));
+        const card = new Card(SUIT.JOKER, i + 1);
 
         ret.add(card);
       }
