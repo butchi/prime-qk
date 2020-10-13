@@ -79,6 +79,6 @@ export default class UcardComb extends Number {
       return this.valueOf().toString(5);
     }
 
-    return Array.from(this.toSet()).sort(compareUcard).toString();
+    return `{${Array.from(this.toSet()).sort(compareUcard).toString()}}`;
   }
 }

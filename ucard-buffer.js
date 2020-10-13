@@ -78,6 +78,6 @@ export default class UcardBuffer extends ArrayBuffer {
   }
 
   toString() {
-    return this.toArray().map(v => new Ucard(v)).toString();
+    return `[${this.toArray().map(v => new Ucard(v)).toString()}]`;
   }
 }
