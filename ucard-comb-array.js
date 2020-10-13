@@ -13,6 +13,6 @@ export default class UcardCombArray extends Uint32Array {
   }
 
   toString() {
-    return Array.from(this).map(v => new UcardComb(v)).toString();
+    return `[${Array.from(this).map(v => new UcardComb(v)).toString()}]`;
   }
 }

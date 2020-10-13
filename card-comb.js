@@ -112,6 +112,6 @@ export default class CardComb extends Number {
       return this.valueOf().toString(2);
     }
 
-    return Array.from(this.toSet()).sort(compareCard).toString();
+    return `{${Array.from(this.toSet()).sort(compareCard).toString()}}`;
   }
 }
