@@ -1,6 +1,6 @@
 import Ucard from './ucard.js';
 import UcardComb from './ucard-comb.js';
-import { parseUcardArray } from './util.js';
+import { parseUcardArray, isPrime } from './util.js';
 
 export default class UcardBuffer extends ArrayBuffer {
   constructor(arg) {
@@ -75,6 +75,20 @@ export default class UcardBuffer extends ArrayBuffer {
     ret.length = this.length;
 
     return ret;
+  }
+
+  toQkNumber() {
+    const rankArr = this.toArray().map(v => (new Ucard(v)).rank);
+
+    if (rankArr.includes(Infinity)) {
+      return Infinity;
+    }
+
+    return parseInt(rankArr.join(''));
+  }
+
+  isPrime() {
+    return isPrime(this.toQkNumber());
   }
 
   toString() {
