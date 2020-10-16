@@ -92,7 +92,62 @@ export const compareUcard = (a, b) => {
 };
 
 export const parseUcardArray = str => {
-  const ucardStrArr = str.split('');
+  const jokerLen = (str.toUpperCase().match(/X/g) || []).length;
+
+  const ruleArr = str.toUpperCase().match(/\|X=[A0-9TJQK]/g);
+
+  let cardStr = str.split('|')[0];
+
+  for (let i = 0; i < ruleArr.length; i++) {
+    const newVal = ruleArr[i].split('=')[1];
+
+    cardStr = cardStr.replace(/X/ ,newVal);
+  }
+
+  const ucardStrArr = cardStr.split('');
 
   return ucardStrArr.map(ucardStr => parseUcard(ucardStr));
 };
+
+
+// http://blog.livedoor.jp/dankogai/archives/51854062.html
+// TODO: 最大素数大富豪数まで対応
+const primeBit16Arr = (sqrtmax => {
+  const ret = [2];
+
+  loop: for (let n = 3; n <= sqrtmax; n += 2) {
+    for (let i = 0; i < ret.length; i++) {
+      const p = ret[i];
+
+      if (n % p === 0) continue loop;
+
+      if (p * p > n) break;
+    }
+    ret.push(n);
+  }
+
+  return ret;
+})(0xffff);
+
+export const factor = n => {
+  if (n < 2) return undefined;
+
+  const ret = [];
+
+  for (let i = 0, l = primeBit16Arr.length; i < l; i++) {
+    const p = primeBit16Arr[i];
+
+    while (n % p === 0) {
+        ret.push(p);
+        n /= p;
+    }
+
+    if (n === 1) return ret;
+  }
+
+  if (n !== 1) ret.push(n);
+
+  return ret;
+};
+
+export const isPrime = n => n < 2 ? undefined : factor(n).length === 1;
