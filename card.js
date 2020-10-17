@@ -2,7 +2,7 @@ import { CARD, SUIT, CARD_JOKER_2 } from './const.js';
 import { parseCard } from './util.js';
 import CardComb from './card-comb.js';
 
-class Card extends Number {
+export class Card extends Number {
   constructor(arg) {
     const value = arg;
 

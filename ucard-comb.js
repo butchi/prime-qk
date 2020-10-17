@@ -1,5 +1,5 @@
 import { UCARD } from './const.js';
-import ucard from './ucard.js';
+import ucard, { Ucard } from './ucard.js';
 import { compareUcard } from './util.js';
 
 export class UcardComb extends Number {
@@ -29,6 +29,35 @@ export class UcardComb extends Number {
     ret.sort(compareUcard);
 
     return ret;
+  }
+
+  has(c) {
+    return this.toArray().includes(c);
+  }
+
+  static complement(ucCombOrg, ...argArr) {
+    if (ucCombOrg instanceof UcardComb) {
+      let ret = ucCombOrg;
+
+      argArr.forEach(arg => {
+        let ucArr;
+
+        if (arg === undefined) {
+        } else if (arg instanceof Ucard) {
+          ucArr = [arg];
+        } else if (arg instanceof UcardComb) {
+          ucArr = arg.toArray();
+        }
+
+        ucArr.forEach(uc => {
+          if (ret.has(uc)) {
+            ret = ucardComb(ret - ucardComb([uc]));
+          }
+        })
+    });
+
+      return ret;
+    }
   }
 
   randomSample(n) {

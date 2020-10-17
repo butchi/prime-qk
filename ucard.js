@@ -2,7 +2,7 @@ import { UCARD } from './const.js';
 import { parseUcard } from './util.js';
 
 // Unsuit-card
-class Ucard extends Number {
+export class Ucard extends Number {
   constructor(arg) {
     const value = arg;
 
