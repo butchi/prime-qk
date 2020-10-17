@@ -21,7 +21,7 @@ class Card extends Number {
 
   static randomSample(n) {
     if (n === undefined) {
-      const arr = Array.from((new CardComb(CARD_JOKER_2)).toSet());
+      const arr = Array.from((cardComb(CARD_JOKER_2)).toSet());
   
       const idx = Math.floor(Math.random() * arr.length);
     

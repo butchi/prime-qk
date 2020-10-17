@@ -2,68 +2,9 @@ import { SUIT } from './const.js';
 import card from './card.js';
 import { compareCard } from './util.js';
 
-export default class CardComb extends Number {
-  constructor (...args) {
-    let value;
-
-    let set = new Set();
-
-    if (args.length < 1) {
-    } else if (args.length === 1) {
-      const arg = args[0];
-
-      if (arg === undefined) {
-      } else if (arg instanceof CardComb) {
-        const cardComb = arg;
-
-        set = cardComb.toSet();
-      } else if (arg instanceof Set) {
-        set = arg;
-      } else if (arg instanceof Array) {
-        const cardArr = arg;
-
-        set = new Set(cardArr);
-      } else if (typeof arg === 'string') {
-        const cardArrStr = arg;
-
-        set = new Set(parseCardArray(cardArrStr));
-      } else if (typeof arg === 'number') {
-        value = arg;
-
-        super(value);
-
-        return;
-      }
-    } else if (args.length > 1) {
-      const cardArr = args;
-
-      set = new Set(cardArr);
-    }
-
-    const setArr = new Array(52).fill(0);
-    const jokerSetArr = new Array(2).fill(0);
-
-    set.forEach(item => {
-      const c = card(item);
-
-      if (c.joker) {
-        jokerSetArr[c.joker - 1]++;
-      } else {
-        setArr[c.suit * 13 + c.rank - 1]++;
-      }
-    });
-
-    setArr.reverse();
-    jokerSetArr.reverse();
-
-    const setInt = parseInt(setArr.join('') + '1', 2);
-    const jokerSetInt = parseInt(jokerSetArr.join(''), 2);
-
-    value = setInt;
-
-    for (let i = 0; i < jokerSetInt; i++) {
-      value *= 2;
-    }
+export class CardComb extends Number {
+  constructor(arg) {
+    const value = arg;
 
     super(value);
   }
@@ -121,3 +62,69 @@ export default class CardComb extends Number {
     return `{${Array.from(this.toSet()).sort(compareCard).toString()}}`;
   }
 }
+
+const cardCombArr = [];
+
+const cardComb = (...argArr) => {
+  let value;
+  let set = new Set();
+
+  if (argArr.length < 1) {
+  } else if (argArr.length === 1) {
+    const arg = argArr[0];
+
+    if (arg === undefined) {
+    } else if (arg instanceof CardComb) {
+      const cardComb = arg;
+
+      set = cardComb.toSet();
+    } else if (arg instanceof Set) {
+      set = arg;
+    } else if (arg instanceof Array) {
+      const cardArr = arg;
+
+      set = new Set(cardArr);
+    } else if (typeof arg === 'string') {
+      const cardArrStr = arg;
+
+      set = new Set(parseCardArray(cardArrStr));
+    } else if (typeof arg === 'number') {
+      value = arg;
+    }
+  } else if (args.length > 1) {
+    const cardArr = args;
+
+    set = new Set(cardArr);
+  }
+
+  const setArr = new Array(52).fill(0);
+  const jokerSetArr = new Array(2).fill(0);
+
+  set.forEach(item => {
+    const c = card(item);
+
+    if (c.joker) {
+      jokerSetArr[c.joker - 1]++;
+    } else {
+      setArr[c.suit * 13 + c.rank - 1]++;
+    }
+  });
+
+  setArr.reverse();
+  jokerSetArr.reverse();
+
+  const setInt = parseInt(setArr.join('') + '1', 2);
+  const jokerSetInt = parseInt(jokerSetArr.join(''), 2);
+
+  if (value === undefined) {
+    value = setInt;
+  }
+
+  for (let i = 0; i < jokerSetInt; i++) {
+    value *= 2;
+  }
+
+  return cardCombArr[value] || (cardCombArr[value] = new CardComb(value));
+}
+
+export default cardComb;

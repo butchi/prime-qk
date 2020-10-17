@@ -1,4 +1,4 @@
-import CardComb from './card-comb.js';
+import cardComb from './card-comb.js';
 
 export default class CardCombArray extends Float64Array {
   constructor(arg) {

@@ -1,5 +1,5 @@
 import card from './card.js';
-import CardComb from './card-comb.js';
+import { CardComb } from './card-comb.js';
 
 export default class CardBuffer extends ArrayBuffer {
   constructor(arg) {
