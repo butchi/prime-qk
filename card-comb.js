@@ -76,7 +76,7 @@ export default class CardComb extends Number {
 
     const normalSetStr = ((new Array(54)).fill('0').join('') + str.replace(regExp, '')).slice(-52);
 
-    const jokerSetStr = ('0' + ((str.match(regExp) || [''])[0].length - 1).toString(2)).slice(-2);
+    const jokerSetStr = ('0' + ((str.match(regExp) || [''])[0].length - 1).toString(2)).slice(-2).split('').reverse().join('');
 
     const normalSetArr = normalSetStr.split('').reverse().map(v => Boolean(Number(v)));
 
