@@ -9,8 +9,8 @@ export class UcardComb extends Number {
     super(value);
   }
 
-  toSet() {
-    const ret = new Set();
+  toArray() {
+    const ret = [];
 
     const str = ((new Array(14)).fill('0').join('') + this.valueOf().toString(5)).slice(-14);
 
@@ -22,16 +22,18 @@ export class UcardComb extends Number {
 
         const uc = ucard(rank);
 
-        ret.add(uc);
+        ret.push(uc);
       }
     });
+
+    ret.sort(compareUcard);
 
     return ret;
   }
 
   randomSample(n) {
     if (n === undefined) {
-      const arr = Array.from(this.toSet());
+      const arr = this.toArray();
 
       const idx = Math.floor(Math.random() * arr.length);
 
@@ -41,7 +43,7 @@ export class UcardComb extends Number {
   }
 
   render(arg) {
-    return `{${Array.from(this.toSet()).sort(compareUcard).map(c => c.render())}}`;
+    return `{${this.toArray().map(c => c.render())}}`;
   }
 
   toString(arg) {
@@ -49,13 +51,11 @@ export class UcardComb extends Number {
       return this.valueOf().toString(5);
     }
 
-    return `{${Array.from(this.toSet()).sort(compareUcard).toString()}}`;
+    return `{${this.toArray().toString()}}`;
   }
 }
 
 const ucardCombArr = [];
-
-const ucardComb0 = new UcardComb(0);
 
 const ucardComb = (...argArr) => {
   let value;
