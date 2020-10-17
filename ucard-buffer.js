@@ -1,5 +1,5 @@
 import ucard from './ucard.js';
-import UcardComb from './ucard-comb.js';
+import { UcardComb } from './ucard-comb.js';
 import { parseUcardArray, isPrime } from './util.js';
 
 export default class UcardBuffer extends ArrayBuffer {
@@ -8,9 +8,9 @@ export default class UcardBuffer extends ArrayBuffer {
 
     if (arg === undefined) {
     } else if (arg instanceof UcardComb) {
-      const ucardComb = arg;
+      const ucComb = arg;
 
-      arr = Array.from(ucardComb.toSet());
+      arr = Array.from(ucComb.toSet());
     } else if (arg instanceof Array) {
       arr = arg;
     } else if (typeof arg === 'string') {

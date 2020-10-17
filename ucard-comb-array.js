@@ -1,4 +1,4 @@
-import UcardComb from './ucard-comb.js';
+import ucardComb from './ucard-comb.js';
 
 export default class UcardCombArray extends Uint32Array {
   constructor(arg) {

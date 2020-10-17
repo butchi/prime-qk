@@ -2,52 +2,9 @@ import { UCARD } from './const.js';
 import ucard from './ucard.js';
 import { compareUcard } from './util.js';
 
-export default class UcardComb extends Number {
-  constructor (...args) {
-    let value;
-
-    let set = new Set();
-
-    if (args.length < 1) {
-      super(0);
-    } else if (args.length === 1) {
-      const arg = args[0];
-
-      if (arg === undefined) {
-        super(0);
-      } else if (arg instanceof UcardComb) {
-        ucardComb = arg;
-
-        value = ucardComb.valueOf();
-      } else if (arg instanceof Set) {
-        set = arg;
-      } else if (arg instanceof Array) {
-        const ucardArr = arg;
-
-        set = new Set(ucardArr);
-      } else if (typeof arg === 'string') {
-      } else if (typeof arg === 'number') {
-        const cardInt = arg;
-
-        super(cardInt);
-
-        return;
-      }
-    } else if (args.length > 1) {
-      const ucardArr = args;
-
-      set = new Set(ucardArr);
-    }
-
-    const tallyArr = new Array(14).fill(0);
-
-    set.forEach(item => {
-      tallyArr[item.joker ? 13 : item.rank - 1]++;
-    });
-
-    tallyArr.reverse();
-
-    value = parseInt(tallyArr.join(''), 5);
+export class UcardComb extends Number {
+  constructor (arg) {
+    const value = arg;
 
     super(value);
   }
@@ -91,3 +48,58 @@ export default class UcardComb extends Number {
     return `{${Array.from(this.toSet()).sort(compareUcard).toString()}}`;
   }
 }
+
+const ucardCombArr = [];
+
+const ucardComb0 = new UcardComb(0);
+
+const ucardComb = (...argArr) => {
+  let value;
+
+  let set = new Set();
+
+  if (argArr.length < 1) {
+    value = 0;
+  } else if (argArr.length === 1) {
+    const arg = argArr[0];
+
+    if (arg === undefined) {
+      value = 0;
+    } else if (arg instanceof UcardComb) {
+      const ucComb = arg;
+
+      value = ucComb.valueOf();
+    } else if (arg instanceof Set) {
+      set = arg;
+    } else if (arg instanceof Array) {
+      const ucardArr = arg;
+
+      set = new Set(ucardArr);
+    } else if (typeof arg === 'string') {
+    } else if (typeof arg === 'number') {
+      const cardInt = arg;
+
+      value = cardInt;
+    }
+  } else if (argArr.length > 1) {
+    const ucArr = argArr;
+
+    set = new Set(ucArr);
+  }
+
+  const tallyArr = new Array(14).fill(0);
+
+  set.forEach(item => {
+    tallyArr[item.joker ? 13 : item.rank - 1]++;
+  });
+
+  tallyArr.reverse();
+
+  if (value === undefined) {
+    value = parseInt(tallyArr.join(''), 5);
+  }
+
+  return ucardCombArr[value] || (ucardCombArr[value] = new UcardComb(value));
+};
+
+export default ucardComb;
