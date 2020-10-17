@@ -2,45 +2,9 @@ import { CARD, SUIT, CARD_JOKER_2 } from './const.js';
 import { parseCard } from './util.js';
 import CardComb from './card-comb.js';
 
-export default class Card extends Number {
-  constructor(...args) {
-    let value = CARD.UNDEFINED;
-
-    if (args.length === 0) {
-    } else if (args.length === 1) {
-      const arg = args[0];
-
-      if (arg === undefined) {
-      } else if (arg instanceof Card) {
-        const card = arg;
-
-        value = card.valueOf();
-      } else if (typeof arg === 'string') {
-        const cardStr = arg;
-
-        value = parseCard(cardStr);
-      } else if (typeof arg === 'number') {
-        const cardInt = arg;
-
-        if (cardInt >= 0 && cardInt <= 63 && Number.isInteger(cardInt)) {
-          value = cardInt;
-        } else if (cardInt === -1) {
-          value = CARD.JOKER1;
-        } else if (cardInt === -2) {
-          value = CARD.JOKER2;
-        }
-      } else {
-      }
-    } else if (args.length === 2) {
-      const suit = args[0];
-      const index = args[1];
-
-      if (suit === SUIT.JOKER && index > 0 && index <= 2) {
-        value = 2 ** 6 - index;
-      } else if (suit < 4 && index > 0 && index <= 13){
-        value = suit * 16 + index;
-      }
-    }
+class Card extends Number {
+  constructor(arg) {
+    const value = arg;
 
     super(value);
 
@@ -108,3 +72,49 @@ export default class Card extends Number {
     return suitStr + rankStr;
   }
 }
+
+const cArr = (new Array(64)).fill(0).map((_, i) => new Card(i));
+
+const card = (...argArr) => {
+  let value = CARD.UNDEFINED;
+
+  if (argArr.length === 0) {
+  } else if (argArr.length === 1) {
+    const arg = argArr[0];
+
+    if (arg === undefined) {
+    } else if (arg instanceof Card) {
+      const c = arg;
+
+      value = c.valueOf();
+    } else if (typeof arg === 'string') {
+      const cardStr = arg;
+
+      value = parseCard(cardStr);
+    } else if (typeof arg === 'number') {
+      const cardInt = arg;
+
+      if (cardInt >= 0 && cardInt <= 63 && Number.isInteger(cardInt)) {
+        value = cardInt;
+      } else if (cardInt === -1) {
+        value = CARD.JOKER1;
+      } else if (cardInt === -2) {
+        value = CARD.JOKER2;
+      }
+    } else {
+    }
+  } else if (argArr.length === 2) {
+    const suit = argArr[0];
+    const index = argArr[1];
+
+    if (suit === SUIT.JOKER && index > 0 && index <= 2) {
+      value = 2 ** 6 - index;
+    } else if (suit < 4 && index > 0 && index <= 13){
+      value = suit * 16 + index;
+    }
+  }
+
+  return cArr[value];
+};
+
+export default card;

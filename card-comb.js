@@ -1,5 +1,5 @@
 import { SUIT } from './const.js';
-import Card from './card.js';
+import card from './card.js';
 import { compareCard } from './util.js';
 
 export default class CardComb extends Number {
@@ -44,7 +44,7 @@ export default class CardComb extends Number {
     const jokerSetArr = new Array(2).fill(0);
 
     set.forEach(item => {
-      const c = new Card(item);
+      const c = card(item);
 
       if (c.joker) {
         jokerSetArr[c.joker - 1]++;
@@ -85,17 +85,17 @@ export default class CardComb extends Number {
         const suit = Math.floor(i / 13);
         const rank = (i % 13) + 1;
 
-        const card = new Card(suit, rank);
+        const c = card(suit, rank);
 
-        ret.add(card);
+        ret.add(c);
       }
     });
 
     for (let i = 0; i < 2; i++) {
       if (jokerSetStr[i] === '1') {
-        const card = new Card(SUIT.JOKER, i + 1);
+        const c = card(SUIT.JOKER, i + 1);
 
-        ret.add(card);
+        ret.add(c);
       }
     }
 

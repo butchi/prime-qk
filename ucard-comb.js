@@ -1,5 +1,5 @@
 import { UCARD } from './const.js';
-import Ucard from './ucard.js';
+import ucard from './ucard.js';
 import { compareUcard } from './util.js';
 
 export default class UcardComb extends Number {
@@ -63,9 +63,9 @@ export default class UcardComb extends Number {
       for (let j = 0; j < len; j++) {
         const rank = i === 13 ? UCARD.JOKER : i + 1;
 
-        const ucard = new Ucard(rank);
+        const uc = ucard(rank);
 
-        ret.add(ucard);
+        ret.add(uc);
       }
     });
 

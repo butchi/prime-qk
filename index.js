@@ -1,11 +1,11 @@
 import { SUIT, CARD_JOKER_2, UCARD_JOKER_2 } from './const.js';
 
-import Card from './card.js';
+import card from './card.js';
 import CardBuffer from './card-buffer.js';
 import CardComb from './card-comb.js';
 import CardCombArray from './card-comb-array.js'
 
-import Ucard from './ucard.js';
+import ucard from './ucard.js';
 import UcardBuffer from './ucard-buffer.js';
 import UcardComb from './ucard-comb.js';
 import UcardCombArray from './ucard-comb-array.js';
@@ -13,9 +13,9 @@ import UcardCombArray from './ucard-comb-array.js';
 import PrimeQkTable from './prime-qk-table.js';
 
 
-const ha = new Card(SUIT.HEART, 1);
-const s3 = new Card(SUIT.SPADE, 3);
-const x2 = new Card(SUIT.JOKER, 2);
+const ha = card(SUIT.HEART, 1);
+const s3 = card(SUIT.SPADE, 3);
+const x2 = card(SUIT.JOKER, 2);
 
 console.log(ha.toString());
 console.log(s3.toString());
@@ -36,9 +36,9 @@ const cCombArr = new CardCombArray([cComb, cCombAll]);
 console.log(cCombArr.toString());
 
 
-const ba = new Ucard(1);
-const bk = new Ucard(13);
-const bx = new Ucard(-1);
+const ba = ucard(1);
+const bk = ucard(13);
+const bx = ucard(-1);
 
 console.log(ba.toString());
 console.log(bk.toString());

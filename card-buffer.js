@@ -1,4 +1,4 @@
-import Card from './card.js';
+import card from './card.js';
 import CardComb from './card-comb.js';
 
 export default class CardBuffer extends ArrayBuffer {
@@ -77,6 +77,6 @@ export default class CardBuffer extends ArrayBuffer {
   }
 
   toString() {
-    return `[${this.toArray().map(v => new Card(v)).toString()}]`;
+    return `[${this.toArray().map(v => card(v)).toString()}]`;
   }
 }
