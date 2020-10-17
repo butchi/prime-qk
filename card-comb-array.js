@@ -12,7 +12,11 @@ export default class CardCombArray extends Float64Array {
     }
   }
 
+  render() {
+    return `[${Array.from(this).map(v => cardComb(v).render())}]`;
+  }
+
   toString() {
-    return `[${Array.from(this).map(v => new CardComb(v)).toString()}]`;
+    return `[${Array.from(this).map(v => cardComb(v)).toString()}]`;
   }
 }

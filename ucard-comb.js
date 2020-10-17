@@ -40,6 +40,10 @@ export class UcardComb extends Number {
     }
   }
 
+  render(arg) {
+    return `{${Array.from(this.toSet()).sort(compareUcard).map(c => c.render())}}`;
+  }
+
   toString(arg) {
     if (arg === 5) {
       return this.valueOf().toString(5);

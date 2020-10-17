@@ -76,6 +76,10 @@ export default class CardBuffer extends ArrayBuffer {
     return ret;
   }
 
+  render() {
+    return `[${this.toArray().map(v => card(v).render())}]`;
+  }
+
   toString() {
     return `[${this.toArray().map(v => card(v)).toString()}]`;
   }

@@ -12,7 +12,11 @@ export default class UcardCombArray extends Uint32Array {
     }
   }
 
+  render() {
+    return `[${Array.from(this).map(v => ucardComb(v).render())}]`;
+  }
+
   toString() {
-    return `[${Array.from(this).map(v => new UcardComb(v)).toString()}]`;
+    return `[${Array.from(this).map(v => ucardComb(v)).toString()}]`;
   }
 }

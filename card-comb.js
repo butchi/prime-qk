@@ -54,6 +54,10 @@ export class CardComb extends Number {
     }
   }
 
+  render() {
+    return `{${Array.from(this.toSet()).sort(compareCard).map(c => c.render())}}`;
+  }
+
   toString(arg) {
     if (arg === 2) {
       return this.valueOf().toString(2);

@@ -91,6 +91,10 @@ export default class UcardBuffer extends ArrayBuffer {
     return isPrime(this.toQkNumber());
   }
 
+  render() {
+    return `[${this.toArray().map(v => ucard(v).render())}]`;
+  }
+
   toString() {
     return `[${this.toArray().map(v => ucard(v)).toString()}]`;
   }

@@ -34,10 +34,7 @@ class Card extends Number {
     }
   }
 
-  toString() {
-    // const str = ('0' + this.valueOf().toString(13)).slice(-2);
-    // const rank = parseInt(str[1], 13) + 1;
-
+  render() {
     if (this.valueOf() === CARD.BLANK) {
       return '';
     }
@@ -67,6 +64,40 @@ class Card extends Number {
 
     if (this.joker) {
       return '🃏' + this.joker;
+    }
+
+    return suitStr + rankStr;
+  }
+
+  toString() {
+    if (this.valueOf() === CARD.BLANK) {
+      return '';
+    }
+
+    if (this.valueOf() === CARD.UNDEFINED) {
+      return 'O';
+    }
+
+    if (!this.isValid) {
+      return '-';
+    }
+
+    const suitStr = {
+      "0": 'C',
+      "1": 'D',
+      "2": 'H',
+      "3": 'S',
+    }[this.suit];
+
+    let rankStr = {
+      "1": 'A',
+      "11": 'J',
+      "12": 'Q',
+      "13": 'K',
+    }[this.rank] || this.rank;
+
+    if (this.joker) {
+      return 'X' + this.joker;
     }
 
     return suitStr + rankStr;

@@ -13,6 +13,25 @@ class Ucard extends Number {
     this.rank = this.joker ? Infinity : value;
   }
 
+  render() {
+    const rank = this.valueOf();
+
+    if (rank === 0) {
+      return '';
+    }
+
+    const rankStr = {
+      "1": 'A',
+      "11": 'J',
+      "12": 'Q',
+      "13": 'K',
+      "14": 'O',
+      "15": 'X',
+    }[rank] || rank.toString();
+
+    return rankStr;
+  }
+
   toString() {
     const rank = this.valueOf();
 
