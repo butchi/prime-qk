@@ -1,5 +1,6 @@
-import { CARD, SUIT } from './const.js';
+import { CARD, SUIT, CARD_JOKER_2 } from './const.js';
 import { parseCard } from './util.js';
+import CardComb from './card-comb.js';
 
 export default class Card extends Number {
   constructor(...args) {
@@ -54,6 +55,21 @@ export default class Card extends Number {
     this.rank = !this.isValid ? null : this.joker ? Infinity : this.index;
   }
 
+  static randomSample(n) {
+    if (n === undefined) {
+      const arr = Array.from((new CardComb(CARD_JOKER_2)).toSet());
+  
+      const idx = Math.floor(Math.random() * arr.length);
+    
+      return arr[idx];
+    } else if (typeof n === 'number') {
+      return (new Array(n)).fill(0).map(_ => {
+        return Card.randomSample();
+      });
+    } else {
+    }
+  }
+
   toString() {
     // const str = ('0' + this.valueOf().toString(13)).slice(-2);
     // const rank = parseInt(str[1], 13) + 1;
@@ -92,18 +108,3 @@ export default class Card extends Number {
     return suitStr + rankStr;
   }
 }
-
-Card.randomSample = n => {
-  if (n === undefined) {
-    const arr = Array.from((new CardComb(CARD_JOKER_2)).toSet());
-
-    const idx = Math.floor(Math.random() * arr.length);
-  
-    return arr[idx];
-  } else if (typeof n === 'number') {
-    return (new Array(n)).fill(0).map(_ => {
-      return Card.randomSample();
-    });
-  } else {
-  }
-};

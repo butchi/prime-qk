@@ -48,7 +48,7 @@ export default class UcardBuffer extends ArrayBuffer {
   }
 
   shuffle() {
-    return this.sort(_ => Math.random() - .5);
+    return new UcardBuffer(this.toArray().sort(_ => Math.random() - .5));
   }
 
   toArray() {

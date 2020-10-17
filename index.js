@@ -10,6 +10,8 @@ import UcardBuffer from './ucard-buffer.js';
 import UcardComb from './ucard-comb.js';
 import UcardCombArray from './ucard-comb-array.js';
 
+import PrimeQkTable from './prime-qk-table.js';
+
 
 const ha = new Card(SUIT.HEART, 1);
 const s3 = new Card(SUIT.SPADE, 3);
@@ -55,3 +57,8 @@ console.log(ucCombAll.toString());
 const ucCombArr = new UcardCombArray([ucComb, ucCombAll]);
 
 console.log(ucCombArr.toString());
+
+const pQkTable = new PrimeQkTable();
+pQkTable.initialize();
+
+console.log(pQkTable.handArr.toString());

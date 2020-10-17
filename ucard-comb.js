@@ -72,6 +72,17 @@ export default class UcardComb extends Number {
     return ret;
   }
 
+  randomSample(n) {
+    if (n === undefined) {
+      const arr = Array.from(this.toSet());
+
+      const idx = Math.floor(Math.random() * arr.length);
+
+      return arr[idx];
+    } else if (typeof n === 'number') {
+    }
+  }
+
   toString(arg) {
     if (arg === 5) {
       return this.valueOf().toString(5);
