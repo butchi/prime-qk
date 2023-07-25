@@ -10,7 +10,6 @@ import UcardBuffer from './ucard-buffer.js';
 import UcardComb from './ucard-comb.js';
 import UcardCombArray from './ucard-comb-array.js';
 
-
 const ha = new Card(SUIT.HEART, 1);
 const s3 = new Card(SUIT.SPADE, 3);
 const x2 = new Card(SUIT.JOKER, 2);
@@ -55,3 +54,17 @@ console.log(ucCombAll.toString());
 const ucCombArr = new UcardCombArray([ucComb, ucCombAll]);
 
 console.log(ucCombArr.toString());
+
+let deckCardArr = Array.from(new UcardComb(UCARD_JOKER_2).toSet())
+
+deckCardArr.sort(_ => Math.random() - .5)
+
+deckCardArr.slice(0, 11)
+deckCardArr.slice(11, 22)
+deckCardArr = deckCardArr.slice(22)
+
+const parseCardString = str => str.replace(/T/g, "10").replace(/J/g, "11").replace(/Q/g, "12").replace(/K/g, "13")
+
+console.log(parseCardString("123456789TJQK"))
+
+const primeDaifugoLitePrimeArr = ["2", "3", "7", "9", "11", "13", "17", "19", "1K", "23", "29", "2J", "31", "37", "3J", "3K", "41", "43", "47", "53", "59", "61", "67", "6K", "71", "73", "79", "83", "89", "8J", "97", "9J", "T1", "T3", "T7", "T9", "TK", "J3", "Q7", "QK", "K1", "K7", "K9"]

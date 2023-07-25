@@ -3,7 +3,7 @@ import Card from './card.js';
 import { compareCard } from './util.js';
 
 export default class CardComb extends Number {
-  constructor (...args) {
+  constructor(...args) {
     let value;
 
     let set = new Set();

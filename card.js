@@ -36,7 +36,7 @@ export default class Card extends Number {
 
       if (suit === SUIT.JOKER && index > 0 && index <= 2) {
         value = 2 ** 6 - index;
-      } else if (suit < 4 && index > 0 && index <= 13){
+      } else if (suit < 4 && index > 0 && index <= 13) {
         value = suit * 16 + index;
       }
     }
@@ -75,7 +75,7 @@ export default class Card extends Number {
       "1": '♢',
       "2": '♡',
       "3": '♠',
-      "4": '🃏',
+      "4": '🃏'
     }[this.suit];
 
     let rankStr = {
@@ -98,7 +98,7 @@ Card.randomSample = n => {
     const arr = Array.from((new CardComb(CARD_JOKER_2)).toSet());
 
     const idx = Math.floor(Math.random() * arr.length);
-  
+
     return arr[idx];
   } else if (typeof n === 'number') {
     return (new Array(n)).fill(0).map(_ => {
