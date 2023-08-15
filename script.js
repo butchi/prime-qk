@@ -291,9 +291,11 @@ cmdBoxElm.addEventListener("submit", evt => {
 
         const factorArr = factor(inputNum)
 
+        const isPrime = checkPrime(inputNum) || checkPrimeBigInt(inputBigInt)
+
         let attackHtml = `<i class="bi-arrow-bar-up"></i> ${inputQkStr}`
 
-        let isValid = false
+        let isValid
 
         if (inputNum == null) {
         } else if (inputNum === Infinity) {
@@ -304,24 +306,26 @@ cmdBoxElm.addEventListener("submit", evt => {
             attackHtml += ' <i class="bi-check"></i> <span class="badge bg-secondary">GC</span>'
 
             isValid = true
-        } else if (checkPrime(inputNum) || checkPrimeBigInt(inputBigInt)) {
-            attackHtml += ` <i class="bi-check-circle-fill"></i> <small>${inputNum} is prime number</small>`
+        } else if (isFinite(inputNum)) {
+            if (isPrime) {
+                attackHtml += ` <i class="bi-check-circle-fill"></i> <small>${inputNum} is prime number</small>`
 
-            isValid = true
-        } else if (!checkPrimeBigInt(inputBigInt)) {
+                isValid = true
+            } else {
+                attackHtml += ` <i class="bi-x-circle-fill"></i> <small>${inputNum} = ${factorArr.join(" × ")}</small>`
+
+                const checkArr = [2, 3, 5, 11, 1001]
+
+                checkArr.forEach(num => {
+                    if (inputNum % num === 0) {
+                        attackHtml += ` <span class="badge bg-secondary">${num}n</span>`
+                    }
+                })
+
+                isValid = false
+            }
+        } else if (!isPrime) {
             attackHtml += ` <i class="bi-x-circle-fill"></i> <small>${inputBigInt} is not prime number</small>`
-
-            isValid = false
-        } else if (!checkPrime(inputNum)) {
-            attackHtml += ` <i class="bi-x-circle-fill"></i> <small>${inputNum} = ${factorArr.join(" × ")}</small>`
-
-            const checkArr = [2, 3, 5, 11, 1001]
-
-            checkArr.forEach(num => {
-                if (inputNum % num === 0) {
-                    attackHtml += ` <span class="badge bg-secondary">${num}n</span>`
-                }
-            })
 
             isValid = false
         } else {
