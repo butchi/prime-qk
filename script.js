@@ -355,10 +355,10 @@ cmdBoxElm.addEventListener("submit", evt => {
 
     sortValArr(handValArr)
 
-    log.info(`<i class="bi-cash-stack"></i> ${toQkString(handValArr)}`)
-
     if (handValArr.length === 0) {
         log.info("Clear!")
+    } else {
+        log.info(`<i class="bi-cash-stack"></i> ${toQkString(handValArr)}`)
     }
 
     cmdInputElm.value = ""
