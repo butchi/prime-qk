@@ -36,9 +36,9 @@ const miillerTest = (d, n) => {
     const r = BigInt(Math.floor(Math.random() * 100_000))
 
     const y = r * (n - 2n) / 100_000n
-    let a = 2n + y % (n - 4n);
+    let a = 2n + y % (n - 4n)
 
-    let x = power(a, d, n);
+    let x = power(a, d, n)
 
     if (x == 1n || x == n - 1n)
         return true
@@ -73,21 +73,21 @@ const checkPrimeBigInt = (n, k = 45) => {
 
 // http://blog.livedoor.jp/dankogai/archives/51854062.html
 const primeBit16Arr = (sqrtmax => {
-    const ret = [2];
+    const ret = [2]
 
     loop: for (let n = 3; n <= sqrtmax; n += 2) {
         for (let i = 0; i < ret.length; i++) {
-            const p = ret[i];
+            const p = ret[i]
 
-            if (n % p === 0) continue loop;
+            if (n % p === 0) continue loop
 
-            if (p * p > n) break;
+            if (p * p > n) break
         }
-        ret.push(n);
+        ret.push(n)
     }
 
-    return ret;
-})(0xffff);
+    return ret
+})(0xffff)
 
 const factor = n => {
     if (n < 2) return undefined
