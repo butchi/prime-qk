@@ -15,9 +15,63 @@ deckValArr.sort(_ => Math.random() - .5)
 
 const outputElmClone = outputTmpl.content.firstElementChild.cloneNode(true)
 
+// https://javascript.plainenglish.io/how-to-find-very-large-prime-numbers-in-javascript-5a563ba2f3bb
+
+const power = (x, y, p) => {
+    let res = 1n
+
+    x = x % p
+    while (y > 0n) {
+        if (y & 1n)
+            res = (res * x) % p
+
+        y = y / 2n
+        x = (x * x) % p
+    }
+
+    return res
+}
+
+const miillerTest = (d, n) => {
+    const r = BigInt(Math.floor(Math.random() * 100_000))
+
+    const y = r * (n - 2n) / 100_000n
+    let a = 2n + y % (n - 4n);
+
+    let x = power(a, d, n);
+
+    if (x == 1n || x == n - 1n)
+        return true
+
+    while (d != n - 1n) {
+        x = (x * x) % n
+        d *= 2n
+
+        if (x == 1n)
+            return false
+        if (x == n - 1n)
+            return true
+    }
+
+    return false
+}
+
+const checkPrimeBigInt = (n, k = 45) => {
+    if (n <= 1n || n == 4n) return false
+    if (n <= 3n) return true
+
+    let d = n - 1n
+    while (d % 2n == 0n)
+        d /= 2n
+
+    for (let i = 0; i < k; i++)
+        if (!miillerTest(d, n))
+            return false
+
+    return true
+}
 
 // http://blog.livedoor.jp/dankogai/archives/51854062.html
-// TODO: 最大素数大富豪数まで対応
 const primeBit16Arr = (sqrtmax => {
     const ret = [2];
 
@@ -36,29 +90,29 @@ const primeBit16Arr = (sqrtmax => {
 })(0xffff);
 
 const factor = n => {
-    if (n < 2) return undefined;
+    if (n < 2) return undefined
 
-    const ret = [];
+    const ret = []
 
     for (let i = 0, l = primeBit16Arr.length; i < l; i++) {
-        const p = primeBit16Arr[i];
+        const p = primeBit16Arr[i]
 
         while (n % p === 0) {
-            ret.push(p);
-            n /= p;
+            ret.push(p)
+            n /= p
         }
 
-        if (n === 1) return ret;
+        if (n === 1) return ret
     }
 
-    if (n !== 1) ret.push(n);
+    if (n !== 1) ret.push(n)
 
-    return ret;
-};
+    return ret
+}
 
-const primeQ = n => {
+const checkPrime = n => {
     if (n == null) {
-    } if (n < 2) {
+    } else if (n < 2) {
         return false
     }
 
@@ -66,8 +120,6 @@ const primeQ = n => {
         return factor(n).length === 1
     }
 }
-
-
 
 const toQkString = arg => {
     if (arg == null) {
@@ -109,8 +161,6 @@ const toQkNumber = arg => {
         const ret = parseInt(str.toUpperCase().replaceAll("A", "1").replaceAll("T", "10").replaceAll("J", "11").replaceAll("Q", "12").replaceAll("K", "13").replaceAll("X", x))
 
         if (ret > Number.MAX_SAFE_INTEGER) {
-            console.error(`${str} is not safe integer`)
-
             return NaN
         }
 
@@ -119,6 +169,31 @@ const toQkNumber = arg => {
         const arr = arg
 
         return toQkNumber(toQkString(arr))
+    } else {
+        return NaN
+    }
+}
+
+const toQkBigInt = arg => {
+    if (arg == null) {
+        return NaN
+    } else if (typeof arg === "string") {
+        const str = arg
+
+        if (str.toUpperCase() === "X") {
+            return Infinity
+        }
+
+        // TODO: ジョーカーの値を指定できるようにする
+        const x = 1
+
+        const ret = BigInt(str.toUpperCase().replaceAll("A", "1").replaceAll("T", "10").replaceAll("J", "11").replaceAll("Q", "12").replaceAll("K", "13").replaceAll("X", x))
+
+        return ret
+    } else if (arg instanceof Array) {
+        const arr = arg
+
+        return toQkBigInt(toQkString(arr))
     } else {
         return NaN
     }
@@ -212,6 +287,7 @@ cmdBoxElm.addEventListener("submit", evt => {
         }
 
         const inputNum = toQkNumber(inputStr)
+        const inputBigInt = toQkBigInt(inputStr)
 
         const factorArr = factor(inputNum)
 
@@ -228,11 +304,15 @@ cmdBoxElm.addEventListener("submit", evt => {
             attackHtml += ' <i class="bi-check"></i> <span class="badge bg-secondary">GC</span>'
 
             isValid = true
-        } else if (primeQ(inputNum)) {
-            attackHtml += ` <i class="bi-check-circle-fill"></i> <small>${inputNum} is Prime</small>`
+        } else if (checkPrime(inputNum) || checkPrimeBigInt(inputBigInt)) {
+            attackHtml += ` <i class="bi-check-circle-fill"></i> <small>${inputNum} is prime number</small>`
 
             isValid = true
-        } else if (isFinite(inputNum) && factorArr.length > 1) {
+        } else if (!checkPrimeBigInt(inputBigInt)) {
+            attackHtml += ` <i class="bi-x-circle-fill"></i> <small>${inputBigInt} is not prime number</small>`
+
+            isValid = false
+        } else if (!checkPrime(inputNum)) {
             attackHtml += ` <i class="bi-x-circle-fill"></i> <small>${inputNum} = ${factorArr.join(" × ")}</small>`
 
             const checkArr = [2, 3, 5, 11, 1001]
@@ -250,11 +330,19 @@ cmdBoxElm.addEventListener("submit", evt => {
 
         if (isValid) {
             spliceIndexArr.forEach(idx => {
-                deckValArr.push(handValArr.splice(idx, 1)[0])
+                const spliceArr = handValArr.splice(idx, 1)
+
+                if (spliceArr && spliceArr.length === 1) {
+                    deckValArr.push(spliceArr[0])
+                }
             })
         } else {
             for (let i = 0; i < inputCardLen; i++) {
-                handValArr.push(deckValArr.shift())
+                const val = deckValArr.shift()
+
+                if (val) {
+                    handValArr.push(val)
+                }
             }
         }
 
