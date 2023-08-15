@@ -1,3 +1,16 @@
 {
-    "type": "module"
+    "name": "prime-qk",
+    "version": "0.1.0",
+    "description": "Prime QK application.",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index"
+    },
+    "author": "IWABUCHI Yu(u)ki <butchiyu+com-github@gmail.com>",
+    "license": "MIT",
+    "dependencies": {
+        "events": "^3.3.0",
+        "koa": "^2.14.1",
+        "koa2-router": "^2.0.1"
+    }
 }
