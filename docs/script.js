@@ -95,6 +95,10 @@ cmdBoxElm.addEventListener("submit", evt => {
             attackHtml += ' <i class="bi-check"></i> <span class="badge bg-secondary">GC</span>'
 
             isValid = true
+        } else if (inputNum === 1) {
+            attackHtml += ` <i class="bi-x-circle-fill"></i> <small>${inputNum} is not prime number</small>`
+
+            isValid = false
         } else if (isFinite(inputNum)) {
             if (isPrime) {
                 attackHtml += ` <i class="bi-check-circle-fill"></i> <small>${inputNum} is prime number</small>`
