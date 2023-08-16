@@ -155,10 +155,19 @@ const toQkNumber = arg => {
             return Infinity
         }
 
-        // TODO: ジョーカーの値を指定できるようにする
-        const x = 1
+        if (str.toUpperCase() === "X") {
+            return Infinity
+        }
 
-        const ret = parseInt(str.toUpperCase().replaceAll("A", "1").replaceAll("T", "10").replaceAll("J", "11").replaceAll("Q", "12").replaceAll("K", "13").replaceAll("X", x))
+        let [cStr, xStr] = str.toUpperCase().split("|")
+
+        if (xStr) {
+            xStr.split("").forEach(xVal => {
+                cStr = cStr.replace("X", xVal)
+            })
+        }
+
+        const ret = parseInt(cStr.toUpperCase().replaceAll("A", "1").replaceAll("T", "10").replaceAll("J", "11").replaceAll("Q", "12").replaceAll("K", "13").replaceAll("X", "1"))
 
         if (ret > Number.MAX_SAFE_INTEGER) {
             return NaN
@@ -184,10 +193,15 @@ const toQkBigInt = arg => {
             return Infinity
         }
 
-        // TODO: ジョーカーの値を指定できるようにする
-        const x = 1
+        let [cStr, xStr] = str.toUpperCase().split("|")
 
-        const ret = BigInt(str.toUpperCase().replaceAll("A", "1").replaceAll("T", "10").replaceAll("J", "11").replaceAll("Q", "12").replaceAll("K", "13").replaceAll("X", x))
+        if (xStr) {
+            xStr.split("").forEach(xVal => {
+                cStr = cStr.replace("X", xVal)
+            })
+        }
+
+        const ret = BigInt(cStr.toUpperCase().replaceAll("A", "1").replaceAll("T", "10").replaceAll("J", "11").replaceAll("Q", "12").replaceAll("K", "13").replaceAll("X", "1"))
 
         return ret
     } else if (arg instanceof Array) {
@@ -205,16 +219,24 @@ const toQkArray = arg => {
     } else if (typeof arg === "string") {
         const str = arg
 
-        // TODO: ジョーカーの値を指定できるようにする
-        const x = 1
+        let [cStr, xStr] = str.toUpperCase().split("|")
 
-        const ret = str.split("").map(char => ({
+        if (xStr) {
+            xStr.split("").forEach(xVal => {
+                cStr = cStr.replace("X", xVal)
+            })
+        }
+
+        const arr = cStr.split("")
+
+        const ret = arr.map(char => ({
             A: 1,
             T: 10,
             J: 11,
             Q: 12,
             K: 13,
-        }[char.toUpperCase()] || parseInt(char.toUpperCase().replace("X", -x))))
+            X: -1,
+        }[char] || parseInt(char)))
 
         return ret
     }
