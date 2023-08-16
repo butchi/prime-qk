@@ -40,6 +40,7 @@ const miillerTest = (d, n) => {
 }
 
 export const checkPrimeBigInt = (n, k = 45) => {
+    if (n === Infinity) return undefined
     if (n <= 1n || n == 4n) return false
     if (n <= 3n) return true
 
