@@ -18,7 +18,7 @@ export class QkCardSequence {
         } else if (typeof arg === "string") {
             const str = arg
 
-            this.val = str
+            this.val = str.toUpperCase()
         } else if (typeof arg === "object") {
             if (arg instanceof Array) {
                 const arr = arg
