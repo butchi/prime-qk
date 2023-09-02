@@ -277,7 +277,10 @@ const execCommand = (inputStr = "") => {
         Qk.sortArray(hand)
 
         if (game.winnerIdx === playerIdx) {
+            canSubmit.value = false
+
             log.bq(`${playerArr[playerIdx]} win!`)
+            log.bq(`Press Enter to continue.`)
         }
 
         set.cardLen = inputCardLen
@@ -310,7 +313,7 @@ const startTourney = ({ idx = 0 }) => {
 
     log.p("Welcome to Prime QK Console")
 
-    startStage({ idx: stage.idx++ })
+    startStage({ idx: ++stage.idx })
 }
 
 const startStage = async ({ idx = 0 }) => {
@@ -318,11 +321,11 @@ const startStage = async ({ idx = 0 }) => {
 
     const { tourney, stage, game, set, turn } = state
 
-    stage.idx++
+    game.idx = 0
 
     log.h2("Stage: " + [tourney.idx, stage.idx].join("-"))
 
-    await startGame({ idx: game.idx++, initCardLen })
+    await startGame({ idx: ++game.idx, initCardLen })
 }
 
 const startGame = async ({ idx = 0, initCardLen = 11 }) => {
@@ -332,7 +335,7 @@ const startGame = async ({ idx = 0, initCardLen = 11 }) => {
 
     const { tourney, stage, game, set, turn } = state
 
-    game.idx++
+    set.idx = 0
 
     const { deck, playerArr, handArr } = game
 
@@ -350,7 +353,7 @@ const startGame = async ({ idx = 0, initCardLen = 11 }) => {
 
     for (let i = 0; i <= 9999; i++) {
         if (game.winnerIdx == null) {
-            await startSet({ idx: set.idx++, playerIdx: set.playerIdx })
+            await startSet({ idx: ++set.idx, playerIdx: set.playerIdx })
         }
     }
 }
@@ -360,8 +363,7 @@ const startSet = async ({ idx = 0, playerIdx = 0 }) => {
 
     const { tourney, stage, game, set, turn } = state
 
-    set.idx++
-    turn.idx = 1
+    turn.idx = 0
 
     log.h4("Set: " + [tourney.idx, stage.idx, game.idx, set.idx].join("-"))
 
@@ -381,7 +383,7 @@ const startSet = async ({ idx = 0, playerIdx = 0 }) => {
                 set.playerIdx = (set.playerIdx + 1) % playerArr.length
             }
 
-            await startTurn({ idx: turn.idx++ })
+            await startTurn({ idx: ++turn.idx })
         }
     }
 }
@@ -423,9 +425,6 @@ const startTurn = async ({ idx = 0 }) => {
 
         cmdStr.value = execCommand("p")
     }
-
-    if (!(startSet.cardLen > 0)) {
-    }
 }
 
 const youPromise = _ => new Promise((resolve, _reject) => {
@@ -436,6 +435,12 @@ const youPromise = _ => new Promise((resolve, _reject) => {
 
 const submitHandler = async evt => {
     evt.preventDefault()
+
+    if (state.game.winnerIdx != null) {
+        startGame({ idx: ++state.game.idx })
+
+        return
+    }
 
     if (!canSubmit.value) {
         return
