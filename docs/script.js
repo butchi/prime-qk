@@ -13,7 +13,12 @@ const cmdBoxElm = document.querySelector("[data-box-command]")
 
 const cmdInputElm = cmdBoxElm.querySelector("input")
 
+const stateStageDefault = {
+    idx: 0,
+}
+
 const stateGameDefault = {
+    idx: 0,
     deck: [],
     playerArr: ["A", "B", "you", "C"],
     handArr: [],
@@ -21,11 +26,13 @@ const stateGameDefault = {
 }
 
 const stateSetDefault = {
+    idx: 0,
     cardLen: 0,
     prevPassCnt: 0,
 }
 
 const stateTurnDefault = {
+    idx: 0,
     playerIdx: null,
     draw: null,
     pass: false,
@@ -259,20 +266,30 @@ const execCommand = (inputStr = "") => {
     }
 }
 
-const startGame = _ => {
-    log.h2(`Prime QK at ${new Date().toISOString()}`)
+const startStage = _ => {
+    state.stage = { ...stateStageDefault, idx: (state.game?.idx || 0 + 1) }
 
-    state.game = { ...stateGameDefault }
+    const { stage } = state
+
+    const { idx } = stage
+
+    log.h2("Prime QK Stage: " + idx)
+
+    startGame()
+}
+
+const startGame = _ => {
+    state.game = { ...stateGameDefault, idx: (state.game?.idx || 0 + 1) }
 
     state.game.deck = (new Array(13 * 4)).fill(0).map((_, i) => Math.floor(i / 4) + 1).concat([-1, -1])
 
     const { game } = state
 
-    const { deck, playerArr, handArr } = game
+    const { idx, deck, playerArr, handArr } = game
 
     deck.sort(_ => Math.random() - 0.5)
 
-    log.h3("new game")
+    log.h3("game: " + idx)
 
     log.code(`deck: ${Qk.fromArrayToString(deck)}`)
 
@@ -362,6 +379,6 @@ const submitHandler = async evt => {
 
 cmdBoxElm.addEventListener("submit", submitHandler)
 
-startGame()
+startStage()
 
 console.log("Thanks, world!")
