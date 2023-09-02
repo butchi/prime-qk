@@ -46,11 +46,9 @@ const state = {
 
 const log = {
     h: (html, depth) => {
-        const preStr = "######".slice(0, depth)
-
         const elm = document.createElement("h" + depth)
 
-        elm.innerHTML = preStr + " " + html
+        elm.innerHTML = html
 
         consoleElm.appendChild(elm)
     },
@@ -73,7 +71,7 @@ const log = {
     bq: html => {
         const elm = document.createElement("blockquote")
 
-        elm.innerHTML = "> " + html
+        elm.innerHTML = html
 
         consoleElm.appendChild(elm)
     },
@@ -90,7 +88,7 @@ const log = {
         const elm = document.createElement("pre")
         const codeElm = document.createElement("code")
 
-        codeElm.innerHTML = "    " + html
+        codeElm.innerHTML = html
 
         elm.appendChild(codeElm)
 
@@ -100,7 +98,7 @@ const log = {
     editCode: html => {
         const elm = consoleElm.querySelector("pre:last-of-type code")
 
-        elm.innerHTML = "    " + html
+        elm.innerHTML = html
     }
 }
 
