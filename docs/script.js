@@ -3,46 +3,17 @@ import { factor, checkPrime, checkPrimeBigInt } from "./util.js"
 
 console.log("Hello, world!")
 
-const log = {
-    info: html => {
-        const elmClone = outputTmpl.content.firstElementChild.cloneNode(true)
-
-        elmClone.querySelector("[data-slot]").innerHTML = html
-
-        boxHistoryElm.appendChild(elmClone)
-    },
-
-    code: html => {
-        const elmClone = outputTmpl.content.firstElementChild.cloneNode(true)
-
-        elmClone.querySelector("[data-slot]").innerHTML = `<pre><code>    ${html}</code></pre>`
-
-        boxHistoryElm.appendChild(elmClone)
-    },
-
-    codeTail: html => {
-        const elm = boxHistoryElm.querySelector("[data-log]:last-of-type")
-        const codeElm = elm.querySelector("code")
-
-        if (codeElm) {
-            codeElm.innerHTML = html
-        }
-    },
-}
-
 const canSubmit = { value: false }
 
 const actionTarget = new EventTarget()
 
 const playerArr = ["A", "B", "you", "C"]
 
-const boxHistoryElm = document.querySelector(".box-history")
+const consoleElm = document.querySelector(".console")
 
 const cmdBoxElm = document.querySelector("[data-box-command]")
 
 const cmdInputElm = cmdBoxElm.querySelector("input")
-
-const outputTmpl = document.querySelector("#output")
 
 const deck = (new Array(13 * 4)).fill(0).map((_, i) => Math.floor(i / 4) + 1).concat([-1, -1])
 
@@ -69,6 +40,66 @@ const state = {
     turn: {},
 }
 
+const log = {
+    h: (html, depth) => {
+        const preStr = "######".slice(0, depth)
+
+        const elm = document.createElement("h" + depth)
+
+        elm.innerHTML = preStr + " " + html
+
+        consoleElm.appendChild(elm)
+    },
+
+    h1: html => log.h(html, 1),
+    h2: html => log.h(html, 2),
+    h3: html => log.h(html, 3),
+    h4: html => log.h(html, 4),
+    h5: html => log.h(html, 5),
+    h6: html => log.h(html, 6),
+
+    p: html => {
+        const elm = document.createElement("p")
+
+        elm.innerHTML = html
+
+        consoleElm.appendChild(elm)
+    },
+
+    bq: html => {
+        const elm = document.createElement("blockquote")
+
+        elm.innerHTML = "> " + html
+
+        consoleElm.appendChild(elm)
+    },
+
+    popoutBq: _ => {
+        const elm = consoleElm.querySelector("blockquote:last-child")
+
+        if (elm) {
+            consoleElm.removeChild(elm)
+        }
+    },
+
+    code: html => {
+        const elm = document.createElement("pre")
+        const codeElm = document.createElement("code")
+
+        codeElm.innerHTML = "    " + html
+
+        elm.appendChild(codeElm)
+
+        consoleElm.appendChild(elm)
+    },
+
+    editCode: html => {
+        const elm = consoleElm.querySelector("pre:last-of-type code")
+
+        elm.innerHTML = "    " + html
+    }
+}
+
 const execCommand = (inputStr = "") => {
     const currentHand = handArr[state.turn.playerIdx]
 
@@ -78,7 +109,9 @@ const execCommand = (inputStr = "") => {
 
         return
     } else if (inputStr.toLowerCase() === "pass" || inputStr.toLowerCase() === "p") {
-        log.codeTail(`    ${playerArr[state.turn.playerIdx]}: pass => ${Qk.fromArrayToString(currentHand)}`)
+        log.popoutBq()
+
+        log.editCode(`${playerArr[state.turn.playerIdx]}: pass => ${Qk.fromArrayToString(currentHand)}`)
 
         state.set.prevPassCnt++
 
@@ -86,6 +119,8 @@ const execCommand = (inputStr = "") => {
 
         return inputStr
     } else if (inputStr.toLowerCase() === "draw" || inputStr.toLowerCase() === "d") {
+        log.popoutBq()
+
         cmdInputElm.value = ""
 
         if (state.turn.draw) {
@@ -98,9 +133,11 @@ const execCommand = (inputStr = "") => {
 
         Qk.sortArray(currentHand)
 
-        log.codeTail(`    ${playerArr[state.turn.playerIdx]}: draw(${Qk.fromValToChar(state.turn.draw)}) => ${Qk.fromArrayToString(currentHand)}`)
+        log.editCode(`${playerArr[state.turn.playerIdx]}: draw(${Qk.fromValToChar(state.turn.draw)}) => ${Qk.fromArrayToString(currentHand)}`)
 
         cmdInputElm.value = ""
+
+        log.bq("あなたの番です   p: pass")
     }
 
     const inputQkSeq = new QkCardSequence(inputStr)
@@ -137,7 +174,7 @@ const execCommand = (inputStr = "") => {
     const isPrime = checkPrime(inputNum) || checkPrimeBigInt(inputBigInt)
 
     const drawStr = state.turn.draw ? `draw(${Qk.fromValToChar(state.turn.draw)}) ` : ""
-    let prependHtml = `    ${playerArr[state.turn.playerIdx]}: ${drawStr}${inputQkStr}`
+    let prependHtml = `${playerArr[state.turn.playerIdx]}: ${drawStr}${inputQkStr}`
     let attackHtml = ""
 
     let isValid
@@ -199,14 +236,12 @@ const execCommand = (inputStr = "") => {
         }
     }
 
-    log.codeTail(`${prependHtml} => ${Qk.fromArrayToString(currentHand)} ${attackHtml}`)
+    log.editCode(`${prependHtml} => ${Qk.fromArrayToString(currentHand)} ${attackHtml}`)
 
     Qk.sortArray(currentHand)
 
     if (currentHand.length === 0) {
-        log.info("> You win!")
-    } else {
-        // log.info(`<i class="bi-cash-stack"></i> ${Qk.fromArrayToString(currentHand)}`)
+        log.bq("You win!")
     }
 
     state.set.prevPassCnt = 0
@@ -217,11 +252,11 @@ const execCommand = (inputStr = "") => {
 }
 
 const startGame = _ => {
-    log.info(`<h2>## Prime QK at ${new Date().toISOString()}</h2>`)
+    log.h2(`Prime QK at ${new Date().toISOString()}`)
 
     deck.sort(_ => Math.random() - .5)
 
-    log.info("<h3>### new game</h3>")
+    log.h3("new game")
 
     playerArr.forEach((name, i) => {
         handArr[i] = Qk.sortArray(deck.splice(0, 11))
@@ -233,7 +268,7 @@ const startGame = _ => {
 }
 
 const startSet = async _ => {
-    log.info("<h4>#### new set</h4>")
+    log.h4("new set")
 
     state.set = { ...stateSetDefault }
 
@@ -262,7 +297,11 @@ const startTurn = async idx => {
     if (name === "you") {
         canSubmit.value = true
 
+        log.bq("あなたの番です   d: draw   p: pass")
+
         cmdStr.value = await youPromise()
+
+        await new Promise(resolve => setTimeout(resolve, 1500))
     } else {
         canSubmit.value = false
 
@@ -277,8 +316,6 @@ const startTurn = async idx => {
 
 const youPromise = _ => new Promise((resolve, _reject) => {
     actionTarget.addEventListener("action", evt => {
-        console.log(evt.target)
-
         resolve()
     })
 })

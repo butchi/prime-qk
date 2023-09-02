@@ -1,3 +1,7 @@
 main {
     padding: 15px;
 }
+
+.console blockquote {
+    color: darkgray;
+}
