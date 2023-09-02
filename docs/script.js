@@ -113,7 +113,11 @@ const execCommand = (inputStr = "") => {
     } else if (inputStr.toLowerCase() === "pass" || inputStr.toLowerCase() === "p") {
         log.popoutBq()
 
-        log.editCode(`${playerArr[playerIdx]}: pass => ${Qk.fromArrayToString(hand)}`)
+        if (turn.draw) {
+            log.editCode(`${playerArr[playerIdx]}: draw(${Qk.fromValToChar(turn.draw)}), pass => ${Qk.fromArrayToString(hand)}`)
+        } else {
+            log.editCode(`${playerArr[playerIdx]}: pass => ${Qk.fromArrayToString(hand)}`)
+        }
 
         set.prevPassCnt++
 
@@ -144,85 +148,85 @@ const execCommand = (inputStr = "") => {
         const inputQkSeq = new QkCardSequence(inputStr)
 
         const inputQkStr = inputQkSeq.toQkString()
-    
+
         const inputCardLen = inputQkSeq.getCardLength()
-    
+
         const inputQkArr = inputQkSeq.toQkArray()
-    
+
         const handTmp = [...hand]
-    
+
         const spliceIndexArr = inputQkArr.map(cardVal => {
             const index = handTmp.findIndex(handVal => Qk.valueOf(handVal) === Qk.valueOf(cardVal))
-    
+
             if (index >= 0) {
                 handTmp.splice(index, 1)
-    
+
                 return index
             } else {
                 return NaN
             }
         })
-    
+
         if (spliceIndexArr.includes(NaN)) {
             return
         }
-    
+
         const inputNum = inputQkSeq.toQkNumber()
         const inputBigInt = inputQkSeq.toQkBigInt()
-    
+
         const factorArr = factor(inputNum)
-    
+
         const isPrime = checkPrime(inputNum) || checkPrimeBigInt(inputBigInt)
-    
+
         const drawStr = turn.draw ? `draw(${Qk.fromValToChar(turn.draw)}) ` : ""
         let prependHtml = `${playerArr[playerIdx]}: ${drawStr}${inputQkStr}`
         let attackHtml = ""
-    
+
         let isValid
-    
+
         if (inputNum == null) {
         } else if (inputNum === Infinity) {
             attackHtml += ` <i class="bi-check"></i> <span class="badge bg-secondary">Joker</span>`
-    
+
             isValid = true
         } else if (inputNum === 57) {
             attackHtml += ` <i class="bi-check"></i> <span class="badge bg-secondary">GC</span>`
-    
+
             isValid = true
         } else if (inputNum === 1) {
             attackHtml += ` <i class="bi-x-circle-fill"></i> <small>${inputNum} is not prime number</small>`
-    
+
             isValid = false
         } else if (isFinite(inputNum)) {
             if (isPrime) {
                 attackHtml += ` <i class="bi-check-circle-fill"></i> <small>${inputNum} is prime number</small>`
-    
+
                 isValid = true
             } else {
                 attackHtml += ` <i class="bi-x-circle-fill"></i> <small>${inputNum} = ${factorArr.join(" × ")}</small>`
-    
+
                 const checkArr = [2, 3, 5, 11, 1001]
-    
+
                 checkArr.forEach(num => {
                     if (inputNum % num === 0) {
                         attackHtml += ` <span class="badge bg-secondary">${num}n</span>`
                     }
                 })
-    
+
                 isValid = false
             }
         } else if (!isPrime) {
             attackHtml += ` <i class="bi-x-circle-fill"></i> <small>${inputBigInt} is not prime number</small>`
-    
+
             isValid = false
         } else {
             return
         }
-    
+
         if (isValid) {
             spliceIndexArr.forEach(idx => {
                 const spliceArr = hand.splice(idx, 1)
-    
+
                 if (spliceArr && spliceArr.length === 1) {
                     deck.push(spliceArr[0])
                 }
@@ -230,7 +234,7 @@ const execCommand = (inputStr = "") => {
         } else {
             for (let i = 0; i < inputCardLen; i++) {
                 const val = deck.shift()
-    
+
                 if (val) {
                     hand.push(val)
                 }
@@ -266,9 +270,11 @@ const startGame = _ => {
 
     const { deck, playerArr, handArr } = game
 
-    game.deck.sort(_ => Math.random() - 0.5)
+    deck.sort(_ => Math.random() - 0.5)
 
     log.h3("new game")
+
+    log.code(`deck: ${Qk.fromArrayToString(deck)}`)
 
     playerArr.forEach((name, i) => {
         handArr[i] = Qk.sortArray(deck.splice(0, 11))
