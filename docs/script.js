@@ -3,15 +3,25 @@ import { factor, checkPrime, checkPrimeBigInt } from "./util.js"
 
 console.log("Hello, world!")
 
+const md = globalThis.markdownit({ html: true });
+
 const canSubmit = { value: false }
 
 const actionTarget = new EventTarget()
 
-const consoleElm = document.querySelector(".console")
+const scoreElm = document.querySelector(".prime-qk-score code")
 
-const cmdBoxElm = document.querySelector("[data-box-command]")
+const consoleElm = document.querySelector(".prime-qk-console")
+
+const cmdBoxElm = document.querySelector(".box-command")
 
 const cmdInputElm = cmdBoxElm.querySelector("input")
+
+const scoreMdSeq = [
+    "# Prime QK Console",
+    "",
+    "Welcome to Prime QK Console",
+]
 
 const stateStageDefault = {
     idx: 0,
@@ -45,61 +55,70 @@ const state = {
 }
 
 const log = {
-    h: (html, depth) => {
-        const elm = document.createElement("h" + depth)
+    render: str => {
+        scoreElm.innerText = scoreMdSeq.join("\n")
 
-        elm.innerHTML = html
+        const scoreMd = scoreMdSeq.map(str => {
+            return str
+                .replaceAll("[x]", '<i class="bi-check-circle-fill"></i>')
+                .replaceAll("[ ]", '<i class="bi-x-circle-fill"></i>')
+        }).join("\n")
 
-        consoleElm.appendChild(elm)
+        consoleElm.innerHTML = md.render(scoreMd)
     },
 
-    h1: html => log.h(html, 1),
-    h2: html => log.h(html, 2),
-    h3: html => log.h(html, 3),
-    h4: html => log.h(html, 4),
-    h5: html => log.h(html, 5),
-    h6: html => log.h(html, 6),
+    h: (str, depth) => {
+        const preStr = "######".slice(0, depth)
 
-    p: html => {
-        const elm = document.createElement("p")
+        const body = preStr + " " + str
+        
+        scoreMdSeq.push("")
+        scoreMdSeq.push(body)
 
-        elm.innerHTML = html
+        log.render()
 
-        consoleElm.appendChild(elm)
+        return body
     },
 
-    bq: html => {
-        const elm = document.createElement("blockquote")
+    h1: str => log.h(str, 1),
+    h2: str => log.h(str, 2),
+    h3: str => log.h(str, 3),
+    h4: str => log.h(str, 4),
+    h5: str => log.h(str, 5),
+    h6: str => log.h(str, 6),
 
-        elm.innerHTML = html
+    p: str => {
+        const body = str
 
-        consoleElm.appendChild(elm)
+        scoreMdSeq.push("")
+        scoreMdSeq.push(body)
+
+        log.render()
+
+        return body
     },
 
-    popoutBq: _ => {
-        const elm = consoleElm.querySelector("blockquote:last-child")
+    bq: str => {
+        const body = "> " + str
 
-        if (elm) {
-            consoleElm.removeChild(elm)
-        }
+        scoreMdSeq.push("")
+        scoreMdSeq.push(body)
+
+        log.render()
+
+        return body
     },
 
-    code: html => {
-        const elm = document.createElement("pre")
-        const codeElm = document.createElement("code")
+    code: str => {
+        const body = "    " + str
 
-        codeElm.innerHTML = html
+        scoreMdSeq.push("")
+        scoreMdSeq.push(body)
 
-        elm.appendChild(codeElm)
+        log.render()
 
-        consoleElm.appendChild(elm)
+        return body
     },
-
-    editCode: html => {
-        const elm = consoleElm.querySelector("pre:last-of-type code")
-
-        elm.innerHTML = html
-    }
 }
 
 const execCommand = (inputStr = "") => {
@@ -116,13 +135,7 @@ const execCommand = (inputStr = "") => {
 
         return
     } else if (inputStr.toLowerCase() === "pass" || inputStr.toLowerCase() === "p") {
-        log.popoutBq()
-
-        if (turn.draw) {
-            log.editCode(`${playerArr[playerIdx]}: draw(${Qk.fromValToChar(turn.draw)}), pass => ${Qk.fromArrayToString(hand)}`)
-        } else {
-            log.editCode(`${playerArr[playerIdx]}: pass => ${Qk.fromArrayToString(hand)}`)
-        }
+        log.code(`${playerArr[playerIdx]}: pass => ${Qk.fromArrayToString(hand)}`)
 
         set.prevPassCnt++
 
@@ -136,19 +149,17 @@ const execCommand = (inputStr = "") => {
             return
         }
 
-        log.popoutBq()
-
         turn.draw = deck.shift()
 
         hand.push(turn.draw)
 
         Qk.sortArray(hand)
 
-        log.editCode(`${playerArr[playerIdx]}: draw(${Qk.fromValToChar(turn.draw)}) => ${Qk.fromArrayToString(hand)}`)
+        log.code(`${playerArr[playerIdx]}: draw(${Qk.fromValToChar(turn.draw)}) => ${Qk.fromArrayToString(hand)}`)
 
         cmdInputElm.value = ""
 
-        log.bq("あなたの番です   p: pass")
+        log.bq("p: pass")
     } else {
         const inputQkSeq = new QkCardSequence(inputStr)
 
@@ -191,37 +202,37 @@ const execCommand = (inputStr = "") => {
 
         if (inputNum == null) {
         } else if (inputNum === Infinity) {
-            attackHtml += ` <i class="bi-check"></i> <span class="badge bg-secondary">Joker</span>`
+            attackHtml += `[x] **Joker**`
 
             isValid = true
         } else if (inputNum === 57) {
-            attackHtml += ` <i class="bi-check"></i> <span class="badge bg-secondary">GC</span>`
+            attackHtml += `[x] **GC**`
 
             isValid = true
         } else if (inputNum === 1) {
-            attackHtml += ` <i class="bi-x-circle-fill"></i> <small>${inputNum} is not prime number</small>`
+            attackHtml += `[ ] ${inputNum} is not prime number`
 
             isValid = false
         } else if (isFinite(inputNum)) {
             if (isPrime) {
-                attackHtml += ` <i class="bi-check-circle-fill"></i> <small>${inputNum} is prime number</small>`
+                attackHtml += `[x] ${inputNum} is prime number`
 
                 isValid = true
             } else {
-                attackHtml += ` <i class="bi-x-circle-fill"></i> <small>${inputNum} = ${factorArr.join(" × ")}</small>`
+                attackHtml += `[ ] ${inputNum} = ${factorArr.join(" × ")}`
 
                 const checkArr = [2, 3, 5, 11, 1001]
 
                 checkArr.forEach(num => {
                     if (inputNum % num === 0) {
-                        attackHtml += ` <span class="badge bg-secondary">${num}n</span>`
+                        attackHtml += ` [*${num}n*]`
                     }
                 })
 
                 isValid = false
             }
         } else if (!isPrime) {
-            attackHtml += ` <i class="bi-x-circle-fill"></i> <small>${inputBigInt} is not prime number</small>`
+            attackHtml += `[ ] ${inputBigInt} is not prime number`
 
             isValid = false
         } else {
@@ -246,7 +257,9 @@ const execCommand = (inputStr = "") => {
             }
         }
 
-        log.editCode(`${prependHtml} => ${Qk.fromArrayToString(hand)} ${attackHtml}`)
+        log.code(`${prependHtml} => ${Qk.fromArrayToString(hand)}`)
+
+        log.bq(attackHtml)
 
         Qk.sortArray(hand)
 
@@ -255,8 +268,6 @@ const execCommand = (inputStr = "") => {
         }
 
         set.prevPassCnt = 0
-
-        log.popoutBq()
 
         cmdInputElm.value = ""
     
@@ -281,13 +292,13 @@ const startGame = _ => {
 
     state.game.deck = (new Array(13 * 4)).fill(0).map((_, i) => Math.floor(i / 4) + 1).concat([-1, -1])
 
-    const { game } = state
+    const { stage, game } = state
 
-    const { idx, deck, playerArr, handArr } = game
+    const { deck, playerArr, handArr } = game
 
     deck.sort(_ => Math.random() - 0.5)
 
-    log.h3("game: " + idx)
+    log.h3("game: " + [stage.idx, game.idx].join("-"))
 
     log.code(`deck: ${Qk.fromArrayToString(deck)}`)
 
@@ -301,11 +312,11 @@ const startGame = _ => {
 }
 
 const startSet = async _ => {
-    log.h4("new set")
+    state.set = { ...stateSetDefault, idx: (state.set?.idx || 0 + 1) }
 
-    state.set = { ...stateSetDefault }
+    const { stage, game, set } = state
 
-    const { game, set } = state
+    log.h4("set: " + [stage.idx, game.idx, set.idx].join("-"))
 
     const { playerArr } = game
 
@@ -336,7 +347,11 @@ const startTurn = async idx => {
     if (name === "you") {
         canSubmit.value = true
 
-        log.bq("あなたの番です   d: draw   p: pass")
+        document.body.scrollTop = 9999
+
+        cmdInputElm.focus()
+
+        log.bq("It's your turn. d: draw p: pass")
 
         cmdStr.value = await youPromise()
 
