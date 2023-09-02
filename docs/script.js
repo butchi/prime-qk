@@ -40,7 +40,9 @@ const stateSetDefault = {
     idx: 0,
     cardLen: 0,
     playerIdx: null,
-    prevPassCnt: 0,
+    masterIdx: null,
+    cutFlag: false,
+    passFlag: false,
 }
 
 const stateTurnDefault = {
@@ -143,7 +145,7 @@ const execCommand = (inputStr = "") => {
         log.code(`${playerArr[playerIdx]}: pass => ${Qk.fromArrayToString(hand)}`)
 
         if (set.cardLen > 0) {
-            set.prevPassCnt++
+            set.passFlag = true
         }
 
         cmdInputElm.value = ""
@@ -211,9 +213,13 @@ const execCommand = (inputStr = "") => {
         } else if (inputNum === Infinity) {
             attackHtml += `[x] **Joker**`
 
+            set.cutFlag = true
+
             isValid = true
         } else if (inputNum === 57) {
             attackHtml += `[x] **GC**`
+
+            set.cutFlag = true
 
             isValid = true
         } else if (inputNum === 1) {
@@ -284,7 +290,8 @@ const execCommand = (inputStr = "") => {
         }
 
         set.cardLen = inputCardLen
-        set.prevPassCnt = 0
+        set.masterIdx = playerIdx
+        set.passFlag = false
 
         cmdInputElm.value = ""
     
@@ -331,9 +338,9 @@ const startStage = async ({ idx = 0 }) => {
 const startGame = async ({ idx = 0, initCardLen = 11 }) => {
     state.game = { ...stateGameDefault, idx }
 
-    state.game.deck = (new Array(13 * 4)).fill(0).map((_, i) => Math.floor(i / 4) + 1).concat([-1, -1])
-
     const { tourney, stage, game, set, turn } = state
+
+    game.deck = (new Array(13 * 4)).fill(0).map((_, i) => Math.floor(i / 4) + 1).concat([-1, -1])
 
     set.idx = 0
 
@@ -351,14 +358,14 @@ const startGame = async ({ idx = 0, initCardLen = 11 }) => {
         log.code(`${name}: ${Qk.fromArrayToString(handArr[i])}`)
     })
 
-    for (let i = 0; i <= 9999; i++) {
+    for (let i of (new Array(9999)).fill((_, idx) => idx)) {
         if (game.winnerIdx == null) {
-            await startSet({ idx: ++set.idx, playerIdx: set.playerIdx })
+            await startSet({ idx: ++set.idx, playerIdx: set.masterIdx ?? set.playerIdx })
         }
     }
 }
 
-const startSet = async ({ idx = 0, playerIdx = 0 }) => {
+const startSet = async ({ idx = 0, playerIdx = null }) => {
     state.set = { ...stateSetDefault, idx, playerIdx }
 
     const { tourney, stage, game, set, turn } = state
@@ -369,22 +376,22 @@ const startSet = async ({ idx = 0, playerIdx = 0 }) => {
 
     const { playerArr, handArr } = game
 
-    for (let i = 0; i <= 9999; i++) {
-        if (handArr[set.playerIdx]?.length === 0) {
+    for (let i of (new Array(9999)).fill((_, idx) => idx)) {
+        if (game.winnerIdx != null) {
             return
         }
 
-        if (set.prevPassCnt >= playerArr.length - 1) {
-            return
+        if (set.playerIdx == null) {
+            set.playerIdx = 0
         } else {
-            if (set.idx === 1 && turn.idx === 1) {
-                set.playerIdx = 0
-            } else {
-                set.playerIdx = (set.playerIdx + 1) % playerArr.length
-            }
-
-            await startTurn({ idx: ++turn.idx })
+            set.playerIdx = (set.playerIdx + 1) % playerArr.length
         }
+
+        if (set.passFlag && (set.playerIdx === set.masterIdx)) {
+            return
+        }
+
+        await startTurn({ idx: ++turn.idx })
     }
 }
 
@@ -437,7 +444,7 @@ const submitHandler = async evt => {
     evt.preventDefault()
 
     if (state.game.winnerIdx != null) {
-        startGame({ idx: ++state.game.idx })
+        startGame({ idx: ++state.game.idx, initCardLen })
 
         return
     }
