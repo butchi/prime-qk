@@ -30,6 +30,7 @@ const stateStageDefault = {
 const stateGameDefault = {
     idx: 0,
     deck: [],
+    winnerIdx: null,
     playerArr: ["A", "B", "you", "C"],
     handArr: [],
     rev: false,
@@ -38,21 +39,25 @@ const stateGameDefault = {
 const stateSetDefault = {
     idx: 0,
     cardLen: 0,
+    playerIdx: null,
     prevPassCnt: 0,
 }
 
 const stateTurnDefault = {
     idx: 0,
-    playerIdx: null,
     draw: null,
     pass: false,
 }
 
 const state = {
+    tourney: {},
+    stage: {},
     game: {},
     set: {},
     turn: {},
 }
+
+const initCardLen = 3
 
 const log = {
     render: str => {
@@ -125,7 +130,7 @@ const execCommand = (inputStr = "") => {
     const { game, set, turn } = state
 
     const { deck, playerArr } = game
-    const { playerIdx } = turn
+    const { playerIdx } = set
 
     const hand = game.handArr[playerIdx]
 
@@ -137,7 +142,9 @@ const execCommand = (inputStr = "") => {
     } else if (inputStr.toLowerCase() === "pass" || inputStr.toLowerCase() === "p") {
         log.code(`${playerArr[playerIdx]}: pass => ${Qk.fromArrayToString(hand)}`)
 
-        set.prevPassCnt++
+        if (set.cardLen > 0) {
+            set.prevPassCnt++
+        }
 
         cmdInputElm.value = ""
 
@@ -257,16 +264,23 @@ const execCommand = (inputStr = "") => {
             }
         }
 
-        log.code(`${prependHtml} => ${Qk.fromArrayToString(hand)}`)
+        if (hand.length === 0) {
+            game.winnerIdx = playerIdx
+        }
+
+        if (game.winnerIdx == null) {
+            log.code(`${prependHtml} => ${Qk.fromArrayToString(hand)}`)
+        }
 
         log.bq(attackHtml)
 
         Qk.sortArray(hand)
 
-        if (hand.length === 0) {
-            log.bq("You win!")
+        if (game.winnerIdx === playerIdx) {
+            log.bq(`${playerArr[playerIdx]} win!`)
         }
 
+        set.cardLen = inputCardLen
         set.prevPassCnt = 0
 
         cmdInputElm.value = ""
@@ -275,34 +289,50 @@ const execCommand = (inputStr = "") => {
     }
 }
 
-const startTourney = _ => {
-    state.tourney = { ...stateTourneyDefault, idx: (state.tourney?.idx || 0) + 1 }
+const init = _ => {
+    Object.assign(state, {
+        tourney: { ...stateTourneyDefault },
+        stage: { ...stateStageDefault},
+        game: { ...stateGameDefault },
+        set: { ...stateSetDefault },
+        turn: { ...stateTurnDefault },
+    })
 
-    const { tourney } = state
+    startTourney({ idx: 1 })
+}
+
+const startTourney = ({ idx = 0 }) => {
+    state.tourney = { ...stateTourneyDefault, idx }
+
+    const { tourney, stage, game, set, turn } = state
 
     log.h1("Prime QK Console: " + tourney.idx)
 
     log.p("Welcome to Prime QK Console")
 
-    startStage()
+    startStage({ idx: stage.idx++ })
 }
 
-const startStage = _ => {
-    state.stage = { ...stateStageDefault, idx: (state.stage?.idx || 0) + 1 }
+const startStage = async ({ idx = 0 }) => {
+    state.stage = { ...stateStageDefault, idx }
 
-    const { tourney, stage } = state
+    const { tourney, stage, game, set, turn } = state
+
+    stage.idx++
 
     log.h2("Stage: " + [tourney.idx, stage.idx].join("-"))
 
-    startGame()
+    await startGame({ idx: game.idx++, initCardLen })
 }
 
-const startGame = _ => {
-    state.game = { ...stateGameDefault, idx: (state.game?.idx || 0) + 1 }
+const startGame = async ({ idx = 0, initCardLen = 11 }) => {
+    state.game = { ...stateGameDefault, idx }
 
     state.game.deck = (new Array(13 * 4)).fill(0).map((_, i) => Math.floor(i / 4) + 1).concat([-1, -1])
 
-    const { tourney, stage, game } = state
+    const { tourney, stage, game, set, turn } = state
+
+    game.idx++
 
     const { deck, playerArr, handArr } = game
 
@@ -313,69 +343,83 @@ const startGame = _ => {
     log.code(`deck: ${Qk.fromArrayToString(deck)}`)
 
     playerArr.forEach((name, i) => {
-        handArr[i] = Qk.sortArray(deck.splice(0, 11))
+        handArr[i] = Qk.sortArray(deck.splice(0, initCardLen))
 
         log.code(`${name}: ${Qk.fromArrayToString(handArr[i])}`)
     })
 
-    startSet()
-}
-
-const startSet = async _ => {
-    state.set = { ...stateSetDefault, idx: (state.set?.idx || 0) + 1 }
-
-    const { tourney, stage, game, set } = state
-
-    log.h4("Set: " + [tourney.idx, stage.idx, game.idx, set.idx].join("-"))
-
-    const { playerArr } = game
-
-    for (let i = 0; i < 99999; i++) {
-        if (set.prevPassCnt >= playerArr.length) {
-            startSet()
-
-            break
-        }
-
-        for (const [playerIdx, _playerName] of Object.entries(playerArr)) {
-            await startTurn({ playerIdx })
+    for (let i = 0; i <= 9999; i++) {
+        if (game.winnerIdx == null) {
+            await startSet({ idx: set.idx++, playerIdx: set.playerIdx })
         }
     }
 }
 
-const startTurn = async ({ playerIdx }) => {
-    console.log(state.turn)
+const startSet = async ({ idx = 0, playerIdx = 0 }) => {
+    state.set = { ...stateSetDefault, idx, playerIdx }
+
+    const { tourney, stage, game, set, turn } = state
+
+    set.idx++
+    turn.idx = 1
+
+    log.h4("Set: " + [tourney.idx, stage.idx, game.idx, set.idx].join("-"))
+
+    const { playerArr, handArr } = game
+
+    for (let i = 0; i <= 9999; i++) {
+        if (handArr[set.playerIdx]?.length === 0) {
+            return
+        }
+
+        if (set.prevPassCnt >= playerArr.length - 1) {
+            return
+        } else {
+            if (set.idx === 1 && turn.idx === 1) {
+                set.playerIdx = 0
+            } else {
+                set.playerIdx = (set.playerIdx + 1) % playerArr.length
+            }
+
+            await startTurn({ idx: turn.idx++ })
+        }
+    }
+}
+
+const startTurn = async ({ idx = 0 }) => {
+    state.turn = { ...stateTurnDefault, idx }
+
+    const { tourney, stage, game, set, turn } = state
+
+    const { playerArr } = game
+
+    const { playerIdx } = set
+
+    const name = playerArr[playerIdx]
 
     const cmdStr = { value: "" }
 
-    state.turn = { ...stateTurnDefault, playerIdx, idx: (state.turn?.idx || 0) + 1 }
-
-    const { stage, game, set, turn } = state
-
-    const name = game.playerArr[playerIdx]
-
-    log.h5("Turn: " + [stage.idx, game.idx, set.idx, turn.idx].join("-"))
+    log.h5("Turn: " + [tourney.idx, stage.idx, game.idx, set.idx, turn.idx].join("-"))
 
     log.bq(`Turn of ${name}`)
 
-    log.code(`${game.playerArr[playerIdx]}: ${Qk.fromArrayToString(game.handArr[playerIdx])}`)
+    log.code(`${playerArr[playerIdx]}: ${Qk.fromArrayToString(game.handArr[playerIdx])}`)
 
     if (name === "you") {
         canSubmit.value = true
 
-        document.body.scrollTop = 9999
-
+        cmdInputElm.blur()
         cmdInputElm.focus()
 
         log.bq("It's your turn. d: draw p: pass")
 
         cmdStr.value = await youPromise()
 
-        await new Promise(resolve => setTimeout(resolve, 1500))
+        await new Promise(resolve => setTimeout(resolve, 650))
     } else {
         canSubmit.value = false
 
-        await new Promise(resolve => setTimeout(resolve, 1500))
+        await new Promise(resolve => setTimeout(resolve, 650))
 
         cmdStr.value = execCommand("p")
     }
@@ -408,6 +452,6 @@ const submitHandler = async evt => {
 
 cmdBoxElm.addEventListener("submit", submitHandler)
 
-startTourney()
+init()
 
 console.log("Thanks, world!")
