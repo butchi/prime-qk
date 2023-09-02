@@ -17,11 +17,11 @@ const cmdBoxElm = document.querySelector(".box-command")
 
 const cmdInputElm = cmdBoxElm.querySelector("input")
 
-const scoreMdSeq = [
-    "# Prime QK Console",
-    "",
-    "Welcome to Prime QK Console",
-]
+const scoreMdSeq = []
+
+const stateTourneyDefault = {
+    idx: 0,
+}
 
 const stateStageDefault = {
     idx: 0,
@@ -275,30 +275,40 @@ const execCommand = (inputStr = "") => {
     }
 }
 
+const startTourney = _ => {
+    state.tourney = { ...stateTourneyDefault, idx: (state.tourney?.idx || 0) + 1 }
+
+    const { tourney } = state
+
+    log.h1("Prime QK Console: " + tourney.idx)
+
+    log.p("Welcome to Prime QK Console")
+
+    startStage()
+}
+
 const startStage = _ => {
-    state.stage = { ...stateStageDefault, idx: (state.game?.idx || 0 + 1) }
+    state.stage = { ...stateStageDefault, idx: (state.stage?.idx || 0) + 1 }
 
-    const { stage } = state
+    const { tourney, stage } = state
 
-    const { idx } = stage
-
-    log.h2("Prime QK Stage: " + idx)
+    log.h2("Stage: " + [tourney.idx, stage.idx].join("-"))
 
     startGame()
 }
 
 const startGame = _ => {
-    state.game = { ...stateGameDefault, idx: (state.game?.idx || 0 + 1) }
+    state.game = { ...stateGameDefault, idx: (state.game?.idx || 0) + 1 }
 
     state.game.deck = (new Array(13 * 4)).fill(0).map((_, i) => Math.floor(i / 4) + 1).concat([-1, -1])
 
-    const { stage, game } = state
+    const { tourney, stage, game } = state
 
     const { deck, playerArr, handArr } = game
 
     deck.sort(_ => Math.random() - 0.5)
 
-    log.h3("game: " + [stage.idx, game.idx].join("-"))
+    log.h3("Game: " + [tourney.idx, stage.idx, game.idx].join("-"))
 
     log.code(`deck: ${Qk.fromArrayToString(deck)}`)
 
@@ -312,11 +322,11 @@ const startGame = _ => {
 }
 
 const startSet = async _ => {
-    state.set = { ...stateSetDefault, idx: (state.set?.idx || 0 + 1) }
+    state.set = { ...stateSetDefault, idx: (state.set?.idx || 0) + 1 }
 
-    const { stage, game, set } = state
+    const { tourney, stage, game, set } = state
 
-    log.h4("set: " + [stage.idx, game.idx, set.idx].join("-"))
+    log.h4("Set: " + [tourney.idx, stage.idx, game.idx, set.idx].join("-"))
 
     const { playerArr } = game
 
@@ -327,22 +337,28 @@ const startSet = async _ => {
             break
         }
 
-        for (const [idx, _name] of Object.entries(playerArr)) {
-            await startTurn(idx)
+        for (const [playerIdx, _playerName] of Object.entries(playerArr)) {
+            await startTurn({ playerIdx })
         }
     }
 }
 
-const startTurn = async idx => {
+const startTurn = async ({ playerIdx }) => {
+    console.log(state.turn)
+
     const cmdStr = { value: "" }
 
-    state.turn = { ...stateTurnDefault, playerIdx: idx }
+    state.turn = { ...stateTurnDefault, playerIdx, idx: (state.turn?.idx || 0) + 1 }
 
-    const { game, turn } = state
+    const { stage, game, set, turn } = state
 
-    log.code(`${game.playerArr[idx]}: ${Qk.fromArrayToString(game.handArr[idx])}`)
+    const name = game.playerArr[playerIdx]
 
-    const name = game.playerArr[idx]
+    log.h5("Turn: " + [stage.idx, game.idx, set.idx, turn.idx].join("-"))
+
+    log.bq(`Turn of ${name}`)
+
+    log.code(`${game.playerArr[playerIdx]}: ${Qk.fromArrayToString(game.handArr[playerIdx])}`)
 
     if (name === "you") {
         canSubmit.value = true
@@ -392,6 +408,6 @@ const submitHandler = async evt => {
 
 cmdBoxElm.addEventListener("submit", submitHandler)
 
-startStage()
+startTourney()
 
 console.log("Thanks, world!")
