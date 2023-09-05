@@ -28,6 +28,6 @@ html, body {
 }
 
 .container {
-    height: calc(100vh - var(--box-command-height) - 65px);
+    height: calc(100vh - var(--box-command-height));
     padding-bottom: calc(var(--box-command-height));
 }
