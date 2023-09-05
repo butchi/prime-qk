@@ -38,7 +38,8 @@ const stateGameDefault = {
 
 const stateSetDefault = {
     idx: 0,
-    cardLen: 0,
+    curCardStr: "",
+    curNum: 0,
     playerIdx: null,
     masterIdx: null,
     cutFlag: false,
@@ -59,7 +60,7 @@ const state = {
     turn: {},
 }
 
-const initCardLen = 3
+const initCardLen = 5
 
 const log = {
     render: _ => {
@@ -141,22 +142,23 @@ const execCommand = (inputStr = "") => {
 
     const hand = game.handArr[playerIdx]
 
-    if (inputStr == null) {
-    } else if (inputStr === "") {
-        handArr[playerIdx]
+    const commandNoop = _ => {
+        return ""
+    }
 
-        return
-    } else if (inputStr.toLowerCase() === "pass" || inputStr.toLowerCase() === "p") {
+    const commandPass = _ => {
         log.code(`${playerArr[playerIdx]}: pass => ${Qk.fromArrayToString(hand)}`)
 
-        if (set.cardLen > 0) {
+        if (set.curCardStr.length > 0) {
             set.passFlag = true
         }
 
         cmdInputElm.value = ""
 
-        return inputStr
-    } else if (inputStr.toLowerCase() === "draw" || inputStr.toLowerCase() === "d") {
+        return "pass"
+    }
+
+    const commandDraw = _ => {
         cmdInputElm.value = ""
 
         if (turn.draw) {
@@ -174,7 +176,9 @@ const execCommand = (inputStr = "") => {
         cmdInputElm.value = ""
 
         log.bq("p: pass")
-    } else {
+    }
+
+    const commandAttack = inputStr => {
         const inputQkSeq = new QkCardSequence(inputStr)
 
         const inputQkStr = inputQkSeq.toQkString()
@@ -213,6 +217,14 @@ const execCommand = (inputStr = "") => {
         let attackHtml = ""
 
         let isValid
+
+        if (set.curCardStr > 0 && inputStr.length !== set.curCardStr.length) {
+            return
+        }
+
+        if (inputNum <= set.curNum) {
+            return
+        }
 
         if (inputNum == null) {
         } else if (inputNum === Infinity) {
@@ -265,6 +277,11 @@ const execCommand = (inputStr = "") => {
                     deck.push(spliceArr[0])
                 }
             })
+
+            set.curCardStr = inputStr
+            set.curNum = inputNum
+            set.masterIdx = playerIdx
+            set.passFlag = false
         } else {
             for (let i = 0; i < inputCardLen; i++) {
                 const val = deck.shift()
@@ -294,13 +311,64 @@ const execCommand = (inputStr = "") => {
             log.bq(`Press Enter to continue.`)
         }
 
-        set.cardLen = inputCardLen
-        set.masterIdx = playerIdx
-        set.passFlag = false
-
         cmdInputElm.value = ""
     
         return inputStr
+    }
+
+    const commanAuto = _ => {
+        // 現状はチートモードとしてユーザーも使える
+
+        const { curCardStr } = state.set
+
+        if (curCardStr.length === 0) {
+            const primeFilt = hand.filter(cVal => [2, 3, 5, 7, 11, 13, -1].includes(cVal))
+
+            if (primeFilt.length > 0) {
+                const card = Qk.fromValToChar(primeFilt[0])
+
+                return commandAttack(card)
+            } else {
+                const oddFilt = hand.filter(cVal => [1, 3, 5, 7, 9, 11, 13, -1].includes(cVal))
+                if (oddFilt.length === 0) {
+                    commandDraw()
+                }
+
+                return commandPass()
+            }
+        } else if (curCardStr.length === 1) {
+            const oddFilt = hand.filter(cVal => [1, 3, 5, 7, 9, 11, 13, -1].includes(cVal))
+            if (oddFilt.length === 0) {
+                commandDraw()
+            }
+
+            const handFilt = hand.filter(cVal => ([2, 3, 5, 7, 11, 13, -1].includes(cVal) && cVal > set.curNum))
+
+            console.log(handFilt)
+
+            if (handFilt.length > 0) {
+                const card = Qk.fromValToChar(handFilt[0])
+
+                return commandAttack(card)
+            } else {
+                return commandPass()
+            }
+        }
+
+        return commandPass()
+    }
+
+    if (inputStr == null) {
+    } else if (inputStr === "") {
+        return commandNoop()
+    } else if (inputStr.toLowerCase() === "pass" || inputStr.toLowerCase() === "p") {
+        return commandPass()
+    } else if (inputStr.toLowerCase() === "draw" || inputStr.toLowerCase() === "d") {
+        return commandDraw()
+    } else if (inputStr.toLowerCase() === "auto" || inputStr.toLowerCase() === "a") {
+        return commanAuto()
+    } else {
+        return commandAttack(inputStr)
     }
 }
 
@@ -413,7 +481,13 @@ const startTurn = async ({ idx = 0 }) => {
 
     log.h5("Turn: " + [tourney.idx, stage.idx, game.idx, set.idx, turn.idx].join("-"))
 
-    log.bq(`Turn of ${name}`)
+    log.bq(`It's turn of ${name}`)
+
+    if (set.curCardStr == "") {
+        log.bq("You are master.")
+    } else {
+        log.bq(`Field is: ${set.curCardStr}`)
+    }
 
     log.code(`${playerArr[playerIdx]}: ${Qk.fromArrayToString(game.handArr[playerIdx])}`)
 
@@ -433,7 +507,7 @@ const startTurn = async ({ idx = 0 }) => {
 
         await new Promise(resolve => setTimeout(resolve, 650))
 
-        cmdStr.value = execCommand("p")
+        cmdStr.value = execCommand("auto")
     }
 }
 
