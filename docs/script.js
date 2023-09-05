@@ -72,6 +72,9 @@ const log = {
         }).join("\n")
 
         consoleElm.innerHTML = md.render(scoreMd)
+
+        // スクロールを最下部に移動
+        document.body.scrollTop = consoleElm.scrollHeight;
     },
 
     h: (str, depth) => {
@@ -462,7 +465,7 @@ const submitHandler = async evt => {
     }
 }
 
-cmdBoxElm.addEventListener("submit", submitHandler)
+cmdBoxElm.querySelector("form").addEventListener("submit", submitHandler)
 
 init()
 
