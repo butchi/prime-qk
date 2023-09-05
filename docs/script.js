@@ -31,7 +31,7 @@ const stateGameDefault = {
     idx: 0,
     deck: [],
     winnerIdx: null,
-    playerArr: ["A", "B", "you", "C"],
+    playerArr: ["A", "B", "C", "D"],
     handArr: [],
     rev: false,
 }
@@ -344,8 +344,6 @@ const execCommand = (inputStr = "") => {
 
             const handFilt = hand.filter(cVal => ([2, 3, 5, 7, 11, 13, -1].includes(cVal) && cVal > set.curNum))
 
-            console.log(handFilt)
-
             if (handFilt.length > 0) {
                 const card = Qk.fromValToChar(handFilt[0])
 
@@ -484,7 +482,7 @@ const startTurn = async ({ idx = 0 }) => {
     log.bq(`It's turn of ${name}`)
 
     if (set.curCardStr == "") {
-        log.bq("You are master.")
+        log.bq(`${name} is master.`)
     } else {
         log.bq(`Field is: ${set.curCardStr}`)
     }
