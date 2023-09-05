@@ -74,7 +74,7 @@ const log = {
         consoleElm.innerHTML = md.render(scoreMd)
 
         // スクロールを最下部に移動
-        document.body.scrollTop = consoleElm.scrollHeight;
+        document.querySelector(".container").scrollTop = consoleElm.scrollHeight;
     },
 
     h: (str, depth) => {

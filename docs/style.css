@@ -6,10 +6,6 @@ html {
     font-size: 13px;
 }
 
-html, body {
-    overflow-y: scroll;
-}
-
 .box-command {
     position: fixed;
     bottom: 0;
@@ -28,6 +24,8 @@ html, body {
 }
 
 .container {
+    overflow-y: scroll;
+
     height: calc(100vh - var(--box-command-height));
     padding-bottom: calc(var(--box-command-height));
 }
