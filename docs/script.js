@@ -62,7 +62,7 @@ const state = {
 const initCardLen = 3
 
 const log = {
-    render: str => {
+    render: _ => {
         scoreElm.innerText = scoreMdSeq.join("\n")
 
         const scoreMd = scoreMdSeq.map(str => {
@@ -86,6 +86,8 @@ const log = {
         scoreMdSeq.push(body)
 
         log.render()
+
+        console.log(str)
 
         return body
     },
@@ -317,35 +319,35 @@ const init = _ => {
 const startTourney = ({ idx = 0 }) => {
     state.tourney = { ...stateTourneyDefault, idx }
 
-    const { tourney, stage, game, set, turn } = state
+    const { tourney } = state
 
     log.h1("Prime QK Console: " + tourney.idx)
 
     log.p("Welcome to Prime QK Console")
 
-    startStage({ idx: ++stage.idx })
+    startStage({ idx: 1 })
 }
 
 const startStage = async ({ idx = 0 }) => {
     state.stage = { ...stateStageDefault, idx }
 
-    const { tourney, stage, game, set, turn } = state
+    const { tourney, stage } = state
 
-    game.idx = 0
+    state.game.idx = 0
 
     log.h2("Stage: " + [tourney.idx, stage.idx].join("-"))
 
-    await startGame({ idx: ++game.idx, initCardLen })
+    await startGame({ idx: ++state.game.idx, initCardLen })
 }
 
 const startGame = async ({ idx = 0, initCardLen = 11 }) => {
     state.game = { ...stateGameDefault, idx }
 
-    const { tourney, stage, game, set, turn } = state
+    const { tourney, stage, game } = state
 
     game.deck = (new Array(13 * 4)).fill(0).map((_, i) => Math.floor(i / 4) + 1).concat([-1, -1])
 
-    set.idx = 0
+    state.set.idx = 0
 
     const { deck, playerArr, handArr } = game
 
@@ -361,9 +363,9 @@ const startGame = async ({ idx = 0, initCardLen = 11 }) => {
         log.code(`${name}: ${Qk.fromArrayToString(handArr[i])}`)
     })
 
-    for (let i of (new Array(9999)).fill((_, idx) => idx)) {
+    for (let _i of (new Array(9999))) {
         if (game.winnerIdx == null) {
-            await startSet({ idx: ++set.idx, playerIdx: set.masterIdx ?? set.playerIdx })
+            await startSet({ idx: ++state.set.idx, playerIdx: state.set.masterIdx ?? state.set.playerIdx ?? 0 })
         }
     }
 }
@@ -371,22 +373,20 @@ const startGame = async ({ idx = 0, initCardLen = 11 }) => {
 const startSet = async ({ idx = 0, playerIdx = null }) => {
     state.set = { ...stateSetDefault, idx, playerIdx }
 
-    const { tourney, stage, game, set, turn } = state
+    const { tourney, stage, game, set } = state
 
-    turn.idx = 0
+    state.turn.idx = 0
 
     log.h4("Set: " + [tourney.idx, stage.idx, game.idx, set.idx].join("-"))
 
     const { playerArr, handArr } = game
 
-    for (let i of (new Array(9999)).fill((_, idx) => idx)) {
+    for (let _i of (new Array(9999))) {
         if (game.winnerIdx != null) {
             return
         }
 
-        if (set.playerIdx == null) {
-            set.playerIdx = 0
-        } else {
+        if (state.turn.idx > 0) {
             set.playerIdx = (set.playerIdx + 1) % playerArr.length
         }
 
@@ -394,7 +394,7 @@ const startSet = async ({ idx = 0, playerIdx = null }) => {
             return
         }
 
-        await startTurn({ idx: ++turn.idx })
+        await startTurn({ idx: ++state.turn.idx })
     }
 }
 
