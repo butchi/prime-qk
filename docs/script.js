@@ -35,7 +35,7 @@ const stateGameDefault = {
     idx: 0,
     deck: [],
     winnerIdx: null,
-    playerArr: ["com1", "com2", "you", "com3"],
+    playerArr: ["com1", "com2", "player", "com4"],
     handArr: [],
     rev: false,
 }
@@ -64,7 +64,7 @@ const state = {
     turn: {},
 }
 
-const initCardLen = 5
+const initCardLen = 11
 
 const log = {
     render: _ => {
@@ -223,10 +223,14 @@ const execCommand = (inputStr = "") => {
         let isValid
 
         if (set.curCardStr > 0 && inputStr.replace(/\|.*/, "").length !== set.curCardStr.length) {
+            log.bq(`Cannot discard. len(${inputStr}) ≦ len(${set.curCardStr})`)
+
             return
         }
 
         if (inputNum <= set.curNum) {
+            log.bq(`Cannot discard. ${inputNum} ≦ ${set.curNum}`)
+
             return
         }
 
@@ -329,20 +333,21 @@ const execCommand = (inputStr = "") => {
 
         const { curCardStr } = state.set
 
+        const qkOddFilt = hand.filter(cVal => [1, 3, 7, 9, 11, 13, -1].includes(cVal))
+        const primeFilt = hand.filter(cVal => ([2, 3, 5, 7, 11, 13, -1].includes(cVal)))
+        const oddPrimeFilt = hand.filter(cVal => [3, 5, 7, 11, 13, -1].includes(cVal))
+        const largerFilter = cVal => (cVal > set.curNum || cVal === -1)
+
         const getAttackCard = len => {
-            const primeFilt = hand.filter(cVal => [2, 3, 5, 7, 11, 13, -1].includes(cVal))
+            if (len >= hand.length) {
+                return new Set()
+            }
 
             if (len == null) {
             } else if (len === 1) {
-                return new Set(primeFilt.map(cVal => Qk.fromValToChar(cVal)))
+                return new Set(primeFilt.filter(largerFilter).map(cVal => Qk.fromValToChar(cVal)))
             } else if (len === 2) {
-                const qkOddFilt = hand.filter(cVal => [1, 3, 7, 9, 11, 13, -1].includes(cVal))
-
                 const primeListLen2 = primeListDigit3.concat(primeListLen2Digit4)
-    
-                if (qkOddFilt.length === 0 || (hand.length === 1 && primeFilt.length === 0)) {
-                    commandDraw()
-                }
     
                 return new Set(qkOddFilt.flatMap(tailVal => {
                     const handTmp = [ ...hand ]
@@ -388,18 +393,83 @@ const execCommand = (inputStr = "") => {
 
                     return cArr
                 }))
+            } else if (len === 3) {
+                // TODO: ジョーカーを使い分ける
+
+                const combination = (nums, k) => {
+                    let ans = []
+                    if (nums.length < k) {
+                        return []
+                    }
+                    if (k === 1) {
+                        for (let i = 0; i < nums.length; i++) {
+                            ans[i] = [nums[i]]
+                        }
+                    } else {
+                        for (let i = 0; i < nums.length - k + 1; i++) {
+                            let row = combination(nums.slice(i + 1), k - 1)
+                            for (let j = 0; j < row.length; j++) {
+                                ans.push([nums[i]].concat(row[j]))
+                            }
+                        }
+                    }
+                    return ans
+                }
+
+                const primeLi = [].concat(primeListDigit3)
+                    .concat(primeListLen2Digit4)
+                    .concat(primeListLen2Digit6)
+                    .concat(primeListLen2Digit8)
+
+                const ret = new Set(qkOddFilt.flatMap(tailVal => {
+                    const handTmp = [ ...hand.filter(cVal => cVal !== -1) ]
+    
+                    const tailIndex = handTmp.findIndex(handVal => handVal === tailVal)
+
+                    if (tailIndex > 0) {
+                        handTmp.splice(tailIndex, 1)
+                    }
+
+                    const combArr = combination(handTmp, 3)
+
+                    return combArr.map(cValArr => {
+                        const num = new QkCardSequence(cValArr).toQkNumber()
+
+                        if ((primeLi.includes(num)) && num > set.curNum) {
+                            return Qk.fromArrayToString(cValArr)
+                        }
+                    }).filter(str => str?.length > 0)
+                }))
+
+                return ret
             }
 
             return new Set()
         }
 
         if (curCardStr.length === 0) {
-            const card2Arr = Array.from(getAttackCard(2))
+            if (qkOddFilt.length === 0 || (hand.length === 1 && primeFilt.filter(largerFilter).length === 0)) {
+                commandDraw()
+            }
 
-            if (card2Arr.length > 0) {
-                card2Arr.sort(sortAbsFunc).sort(sortEvenCardFunc)
+            if (hand.length >= 3) {
+                const card3Arr = Array.from(getAttackCard(3))
 
-                return commandAttack(card2Arr[0])
+                if (card3Arr.length > 0) {
+                    card3Arr.sort(sortAbsFunc).sort(sortEvenCardFunc)
+
+                    return commandAttack(card3Arr[0])
+                }    
+            }
+
+            if (hand.length >= 2) {
+                const card2Arr = Array.from(getAttackCard(2))
+
+                if (card2Arr.length > 0) {
+                    card2Arr.sort(sortAbsFunc).sort(sortEvenCardFunc)
+
+                    return commandAttack(card2Arr[0])
+                }
             }
 
             const card1Arr = Array.from(getAttackCard(1))
@@ -412,25 +482,39 @@ const execCommand = (inputStr = "") => {
 
             return commandPass()
         } else if (curCardStr.replace(/\|.*/, "").length === 1) {
-            const oddPrimeFilt = hand.filter(cVal => [1, 3, 5, 7, 9, 11, 13, -1].includes(cVal))
-
             if (oddPrimeFilt.length === 0) {
                 commandDraw()
             }
 
-            const primeFilt = hand.filter(cVal => ([2, 3, 5, 7, 11, 13, -1].includes(cVal) && (cVal > set.curNum || cVal === -1)))
-
-            if (primeFilt.length > 0) {
-                const card = Qk.fromValToChar(primeFilt[0])
+            if (primeFilt.filter(largerFilter).length > 0) {
+                const card = Qk.fromValToChar(primeFilt.filter(largerFilter)[0])
 
                 return commandAttack(card)
             } else {
                 return commandPass()
             }
         } else if (curCardStr.replace(/\|.*/, "").length === 2) {
+            if (oddPrimeFilt.length === 0) {
+                commandDraw()
+            }
+
             const card2Arr = Array.from(getAttackCard(2))
 
             const arrPass = card2Arr.filter(str => new QkCardSequence(str).toQkNumber() > set.curNum)
+
+            if (arrPass.length > 0) {
+                arrPass.sort(sortAbsFunc).sort(sortEvenCardFunc)
+
+                return commandAttack(arrPass[0])
+            }
+        } else if (curCardStr.replace(/\|.*/, "").length === 3) {
+            if (oddPrimeFilt.length === 0) {
+                commandDraw()
+            }
+
+            const card3Arr = Array.from(getAttackCard(3))
+
+            const arrPass = card3Arr.filter(str => new QkCardSequence(str).toQkNumber() > set.curNum)
 
             if (arrPass.length > 0) {
                 arrPass.sort(sortAbsFunc).sort(sortEvenCardFunc)
@@ -498,6 +582,7 @@ const startGame = async ({ idx = 0, initCardLen = 11 }) => {
     const { tourney, stage, game } = state
 
     // game.deck = "AT89Q37AK444J9XJ7K57658T3T9K5XJQ26K297A68JT5622Q3A43Q8".split("").map(char => Qk.fromCharToVal(char))
+    // game.deck = [3, 11, 4, 10, 2, 1, 10, 9, 6, 2, 1, 9, 8, 2, 12, -1, 13, 6, 3, 11, 4, 1, 3, 8, 5, 12, 8, 8, 12, 7, 5, 7, 10, 6, 1, 12, -1, 3, 13, 13, 7, 4, 4, 9, 13, 11, 11, 2, 6, 10, 7, 5, 9, 5]
     game.deck = (new Array(13 * 4)).fill(0).map((_, i) => Math.floor(i / 4) + 1).concat([-1, -1])
 
     state.set.idx = 0
@@ -505,6 +590,7 @@ const startGame = async ({ idx = 0, initCardLen = 11 }) => {
     const { deck, playerArr, handArr } = game
 
     deck.sort(_ => Math.random() - 0.5)
+    console.log("deck: ", deck)
 
     log.h3("Game: " + [tourney.idx, stage.idx, game.idx].join("-"))
 
@@ -576,7 +662,7 @@ const startTurn = async ({ idx = 0 }) => {
 
     log.code(`${playerArr[playerIdx]}: ${Qk.fromArrayToString(game.handArr[playerIdx])}`)
 
-    if (name === "you") {
+    if (name.startsWith("player")) {
         canSubmit.value = true
 
         cmdInputElm.blur()
