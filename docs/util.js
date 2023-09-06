@@ -106,3 +106,13 @@ export const checkPrime = n => {
         return factor(n).length === 1
     }
 }
+
+export const primeListDigit3 = (new Array(999)).fill(0).map((_, i) => i).filter(n => checkPrime(n))
+
+const tjqk = (new Array(4)).fill(0).map((_, i) => "1" + i)
+
+const tjqkTuples = (arr, i) => i > 1 ? tjqkTuples(arr.flatMap(val => tjqk.map(v => val + v)), i - 1) : arr
+
+export const primeListLen2Digit4 = tjqkTuples(tjqk, 2).map(str => parseInt(str)).filter(n => checkPrime(n))
+export const primeListLen2Digit6 = tjqkTuples(tjqk, 3).map(str => parseInt(str)).filter(n => checkPrime(n))
+export const primeListLen2Digit8 = tjqkTuples(tjqk, 4).map(str => parseInt(str)).filter(n => checkPrime(n))

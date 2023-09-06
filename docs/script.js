@@ -1,5 +1,9 @@
+// TODO: 合成数出し
+// TODO: ラマヌジャン革命
+// TODO: 素数候補提示
+
 import { Qk, QkCardSequence } from "./qk.js"
-import { factor, checkPrime, checkPrimeBigInt } from "./util.js"
+import { factor, checkPrime, checkPrimeBigInt, primeListDigit3, primeListLen2Digit4, primeListLen2Digit6, primeListLen2Digit8 } from "./util.js"
 
 console.log("Hello, world!")
 
@@ -31,7 +35,7 @@ const stateGameDefault = {
     idx: 0,
     deck: [],
     winnerIdx: null,
-    playerArr: ["A", "B", "C", "D"],
+    playerArr: ["com1", "com2", "you", "com3"],
     handArr: [],
     rev: false,
 }
@@ -218,7 +222,7 @@ const execCommand = (inputStr = "") => {
 
         let isValid
 
-        if (set.curCardStr > 0 && inputStr.length !== set.curCardStr.length) {
+        if (set.curCardStr > 0 && inputStr.replace(/\|.*/, "").length !== set.curCardStr.length) {
             return
         }
 
@@ -278,7 +282,7 @@ const execCommand = (inputStr = "") => {
                 }
             })
 
-            set.curCardStr = inputStr
+            set.curCardStr = inputQkSeq.toQkString()
             set.curNum = inputNum
             set.masterIdx = playerIdx
             set.passFlag = false
@@ -317,39 +321,121 @@ const execCommand = (inputStr = "") => {
     }
 
     const commanAuto = _ => {
-        // 現状はチートモードとしてユーザーも使える
+        // 現状はチートだがユーザーも使える
+
+        const countEven = (str) => str.toUpperCase().replaceAll(/\|.*/g, "").replaceAll(/[A379JKX]/g, "").length
+        const sortAbsFunc = (a, b) => (new QkCardSequence(b).toQkNumber()) - (new QkCardSequence(a).toQkNumber())
+        const sortEvenCardFunc = (a, b) => countEven(b) - countEven(a)
 
         const { curCardStr } = state.set
 
-        if (curCardStr.length === 0) {
+        const getAttackCard = len => {
             const primeFilt = hand.filter(cVal => [2, 3, 5, 7, 11, 13, -1].includes(cVal))
+
+            if (len == null) {
+            } else if (len === 1) {
+                return new Set(primeFilt.map(cVal => Qk.fromValToChar(cVal)))
+            } else if (len === 2) {
+                const qkOddFilt = hand.filter(cVal => [1, 3, 7, 9, 11, 13, -1].includes(cVal))
+
+                const primeListLen2 = primeListDigit3.concat(primeListLen2Digit4)
+    
+                if (qkOddFilt.length === 0 || (hand.length === 1 && primeFilt.length === 0)) {
+                    commandDraw()
+                }
+    
+                return new Set(qkOddFilt.flatMap(tailVal => {
+                    const handTmp = [ ...hand ]
+    
+                    const index = handTmp.findIndex(handVal => handVal === tailVal)
+    
+                    if (index >= 0) {
+                        handTmp.splice(index, 1)
+                    }
+
+                    const cArr = handTmp.flatMap(handVal => {
+                        if (handVal === -1 && tailVal === -1) {
+                            return `XX|QK`
+                        } else if (tailVal === -1) {
+                            return new Array(13 + 1).fill(0).map((_, xVal) => {
+                                const arrTmp = [handVal, - xVal]
+                                const num = new QkCardSequence(arrTmp).toQkNumber()
+        
+                                if (num === 57 || (primeListLen2.includes(num)) && num > set.curNum) {
+                                    return `${Qk.fromArrayToString(arrTmp)}|${Qk.fromValToChar(xVal)}`
+                                }
+                            })
+                        } else if (handVal === -1) {
+                            return new Array(13 + 1).fill(0).map((_, xVal) => {
+                                if (xVal === 0) return 
+
+                                const arrTmp = [- xVal, tailVal]
+                                const num = new QkCardSequence(arrTmp).toQkNumber()
+        
+                                if (num === 57 || (primeListLen2.includes(num)) && num > set.curNum) {
+                                    return `${Qk.fromArrayToString(arrTmp)}|${Qk.fromValToChar(xVal)}`
+                                }
+                            })
+                        } else {
+                            const arrTmp = [handVal, tailVal]
+                            const num = new QkCardSequence(arrTmp).toQkNumber()
+
+                            if (num === 57 || (primeListLen2.includes(num)) && num > set.curNum) {
+                                return Qk.fromArrayToString(arrTmp)
+                            }
+                        }
+                    }).filter(str => str?.length > 0)
+
+                    return cArr
+                }))
+            }
+
+            return new Set()
+        }
+
+        if (curCardStr.length === 0) {
+            const card2Arr = Array.from(getAttackCard(2))
+
+            if (card2Arr.length > 0) {
+                card2Arr.sort(sortAbsFunc).sort(sortEvenCardFunc)
+
+                return commandAttack(card2Arr[0])
+            }
+
+            const card1Arr = Array.from(getAttackCard(1))
+
+            if (card1Arr.length > 0) {
+                card1Arr.sort(sortAbsFunc).sort(sortEvenCardFunc)
+
+                return commandAttack(card1Arr[0])
+            }
+
+            return commandPass()
+        } else if (curCardStr.replace(/\|.*/, "").length === 1) {
+            const oddPrimeFilt = hand.filter(cVal => [1, 3, 5, 7, 9, 11, 13, -1].includes(cVal))
+
+            if (oddPrimeFilt.length === 0) {
+                commandDraw()
+            }
+
+            const primeFilt = hand.filter(cVal => ([2, 3, 5, 7, 11, 13, -1].includes(cVal) && (cVal > set.curNum || cVal === -1)))
 
             if (primeFilt.length > 0) {
                 const card = Qk.fromValToChar(primeFilt[0])
 
                 return commandAttack(card)
             } else {
-                const oddFilt = hand.filter(cVal => [1, 3, 5, 7, 9, 11, 13, -1].includes(cVal))
-                if (oddFilt.length === 0) {
-                    commandDraw()
-                }
-
                 return commandPass()
             }
-        } else if (curCardStr.length === 1) {
-            const oddFilt = hand.filter(cVal => [1, 3, 5, 7, 9, 11, 13, -1].includes(cVal))
-            if (oddFilt.length === 0) {
-                commandDraw()
-            }
+        } else if (curCardStr.replace(/\|.*/, "").length === 2) {
+            const card2Arr = Array.from(getAttackCard(2))
 
-            const handFilt = hand.filter(cVal => ([2, 3, 5, 7, 11, 13, -1].includes(cVal) && cVal > set.curNum))
+            const arrPass = card2Arr.filter(str => new QkCardSequence(str).toQkNumber() > set.curNum)
 
-            if (handFilt.length > 0) {
-                const card = Qk.fromValToChar(handFilt[0])
+            if (arrPass.length > 0) {
+                arrPass.sort(sortAbsFunc).sort(sortEvenCardFunc)
 
-                return commandAttack(card)
-            } else {
-                return commandPass()
+                return commandAttack(arrPass[0])
             }
         }
 
@@ -411,6 +497,7 @@ const startGame = async ({ idx = 0, initCardLen = 11 }) => {
 
     const { tourney, stage, game } = state
 
+    // game.deck = "AT89Q37AK444J9XJ7K57658T3T9K5XJQ26K297A68JT5622Q3A43Q8".split("").map(char => Qk.fromCharToVal(char))
     game.deck = (new Array(13 * 4)).fill(0).map((_, i) => Math.floor(i / 4) + 1).concat([-1, -1])
 
     state.set.idx = 0
@@ -484,7 +571,7 @@ const startTurn = async ({ idx = 0 }) => {
     if (set.curCardStr == "") {
         log.bq(`${name} is master.`)
     } else {
-        log.bq(`Field is: ${set.curCardStr}`)
+        log.bq(`Field is: ${set.curCardStr} (length: ${set.curCardStr.replace(/\|.*/, "")   .length})`)
     }
 
     log.code(`${playerArr[playerIdx]}: ${Qk.fromArrayToString(game.handArr[playerIdx])}`)
@@ -499,13 +586,15 @@ const startTurn = async ({ idx = 0 }) => {
 
         cmdStr.value = await youPromise()
 
-        await new Promise(resolve => setTimeout(resolve, 650))
+        await new Promise(resolve => setTimeout(resolve, 1500))
     } else {
         canSubmit.value = false
 
-        await new Promise(resolve => setTimeout(resolve, 650))
+        await new Promise(resolve => setTimeout(resolve, 1500))
 
         cmdStr.value = execCommand("auto")
+
+        await new Promise(resolve => setTimeout(resolve, 850))
     }
 }
 
