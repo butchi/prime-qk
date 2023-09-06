@@ -687,6 +687,10 @@ const startSet = async ({ idx = 0, playerIdx = null }) => {
             set.playerIdx = (set.playerIdx + 1) % playerArr.length
         }
 
+        if (set.cutFlag) {
+            return
+        }
+
         if (set.passFlag && (set.playerIdx === set.masterIdx)) {
             return
         }
