@@ -71,6 +71,29 @@ const log = {
         scoreElm.innerText = scoreMdSeq.join("\n")
 
         const scoreMd = scoreMdSeq.map(str => {
+            if (str.startsWith("    ")) {
+                const [player, seq] = str.slice(4).split(": ")
+                const [pre, post] = seq.split(" => ")
+
+                let cmdStr
+                let bodyStr
+
+                if (post == null) {
+                    bodyStr = pre
+                } else {
+                    cmdStr = pre
+                    bodyStr = post
+                }
+
+                const bodyRepl = player.startsWith("player") ? bodyStr : bodyStr.replaceAll(/[0-9AJQKTX]/g, "*")
+
+                if (cmdStr) {
+                    str = `    ${player}: ${cmdStr} => ${bodyRepl}`
+                } else {
+                    str = `    ${player}: ${bodyRepl}`
+                }
+            }
+
             return str
                 .replaceAll("[x]", '<i class="bi-check-circle-fill"></i>')
                 .replaceAll("[ ]", '<i class="bi-x-circle-fill"></i>')
