@@ -31,8 +31,8 @@ export class QkCardSequence {
     toQkNumber(xArr) {
         const str = this.val
 
-        if (str.toUpperCase() === "X") {
-            return Infinity
+        if (str == null) {
+            return NaN
         }
 
         if (str.toUpperCase() === "X") {
@@ -66,6 +66,10 @@ export class QkCardSequence {
 
     toQkBigInt() {
         const str = this.val
+
+        if (str == null) {
+            return NaN
+        }
 
         if (str.toUpperCase() === "X") {
             return Infinity
@@ -131,7 +135,11 @@ export const Qk = {
         }
     },
     sortArray: arr => arr.sort((a, b) => Qk.valueOf(a) - Qk.valueOf(b)),
-    fromStringToArray: (str) => {
+    fromStringToArray: str => {
+        if (str == null) {
+            return []
+        }
+
         let [cStr, xStr] = str.toUpperCase().split("|")
 
         const arr = cStr.split("")
@@ -170,5 +178,5 @@ export const Qk = {
 
             return ret
         }
-    }
+    },
 }
