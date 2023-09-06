@@ -7,6 +7,35 @@ import { factor, checkPrime, checkPrimeBigInt, primeListDigit3, primeListLen2Dig
 
 console.log("Hello, world!")
 
+const GUI = lil.GUI
+const gui = new GUI()
+
+const paramLi = {
+    playerLen: 4,
+    humLen: 1,
+    isOpenCard: false,
+	pause: false,
+    initCardLen: 11,
+    waitSec: 1,
+    initialize: _ => {
+        init()
+    },
+}
+
+gui.add(paramLi, "playerLen", 1, 4, 1)
+gui.add(paramLi, "humLen", 0, 4, 1)
+gui.add(paramLi, "isOpenCard").onChange(val => {
+    log.render()
+})
+gui.add(paramLi, "initCardLen", 1, 23, 1).onChange(val => {
+    stateGameDefault.initCardLen = val
+})
+gui.add(paramLi, "waitSec", 0, 5)
+gui.add(paramLi, "pause")
+gui.add(paramLi, "initialize")
+
+gui.close()
+
 const md = globalThis.markdownit({ html: true });
 
 const canSubmit = { value: false }
@@ -35,7 +64,7 @@ const stateGameDefault = {
     idx: 0,
     deck: [],
     winnerIdx: null,
-    playerArr: ["com1", "com2", "player", "com4"],
+    playerArr: [],
     handArr: [],
     rev: false,
 }
@@ -64,14 +93,12 @@ const state = {
     turn: {},
 }
 
-const initCardLen = 11
-
 const log = {
     render: _ => {
         scoreElm.innerText = scoreMdSeq.join("\n")
 
         const scoreMd = scoreMdSeq.map(str => {
-            if (str.startsWith("    ")) {
+            if (!paramLi.isOpenCard && str.startsWith("    ")) {
                 const [player, seq] = str.slice(4).split(": ")
                 const [pre, post] = seq.split(" => ")
 
@@ -85,7 +112,7 @@ const log = {
                     bodyStr = post
                 }
 
-                const bodyRepl = player.startsWith("player") ? bodyStr : bodyStr.replaceAll(/[0-9AJQKTX]/g, "*")
+                const bodyRepl = player.startsWith("hum") ? bodyStr : bodyStr.replaceAll(/[0-9AJQKTX]/g, "*")
 
                 if (cmdStr) {
                     str = `    ${player}: ${cmdStr} => ${bodyRepl}`
@@ -340,6 +367,8 @@ const execCommand = (inputStr = "") => {
 
             log.bq(`${playerArr[playerIdx]} win!`)
             log.bq(`Press Enter to continue.`)
+
+            console.info("score: ", scoreMdSeq.join("\n"))
         }
 
         cmdInputElm.value = ""
@@ -564,6 +593,8 @@ const execCommand = (inputStr = "") => {
 }
 
 const init = _ => {
+    scoreMdSeq.length = 0
+
     Object.assign(state, {
         tourney: { ...stateTourneyDefault },
         stage: { ...stateStageDefault},
@@ -596,21 +627,31 @@ const startStage = async ({ idx = 0 }) => {
 
     log.h2("Stage: " + [tourney.idx, stage.idx].join("-"))
 
-    await startGame({ idx: ++state.game.idx, initCardLen })
+    await startGame({ idx: ++state.game.idx  })
 }
 
 const startGame = async ({ idx = 0, initCardLen = 11 }) => {
-    state.game = { ...stateGameDefault, idx }
+    const playerArr = new Array(paramLi.playerLen).fill(0).map((_, i) => {
+        if (i < paramLi.humLen) {
+            return "hum" + (i + 1)
+        } else {
+            return "com" + (i - paramLi.humLen + 1)
+        }
+    })
+
+    playerArr.sort(_ => Math.random() - 0.5)
+
+    state.game = { ...stateGameDefault, playerArr, idx }
 
     const { tourney, stage, game } = state
 
-    // game.deck = "AT89Q37AK444J9XJ7K57658T3T9K5XJQ26K297A68JT5622Q3A43Q8".split("").map(char => Qk.fromCharToVal(char))
+    // game.deck = "264TX254924K858J9JT37Q899A2AKXQ7K53JT6A5Q3874TA66QJK37".split("").map(char => Qk.fromCharToVal(char))
     // game.deck = [3, 11, 4, 10, 2, 1, 10, 9, 6, 2, 1, 9, 8, 2, 12, -1, 13, 6, 3, 11, 4, 1, 3, 8, 5, 12, 8, 8, 12, 7, 5, 7, 10, 6, 1, 12, -1, 3, 13, 13, 7, 4, 4, 9, 13, 11, 11, 2, 6, 10, 7, 5, 9, 5]
     game.deck = (new Array(13 * 4)).fill(0).map((_, i) => Math.floor(i / 4) + 1).concat([-1, -1])
 
     state.set.idx = 0
 
-    const { deck, playerArr, handArr } = game
+    const { deck, handArr } = game
 
     deck.sort(_ => Math.random() - 0.5)
     console.log("deck: ", deck)
@@ -685,7 +726,7 @@ const startTurn = async ({ idx = 0 }) => {
 
     log.code(`${playerArr[playerIdx]}: ${Qk.fromArrayToString(game.handArr[playerIdx])}`)
 
-    if (name.startsWith("player")) {
+    if (name.startsWith("hum")) {
         canSubmit.value = true
 
         cmdInputElm.blur()
@@ -695,15 +736,16 @@ const startTurn = async ({ idx = 0 }) => {
 
         cmdStr.value = await youPromise()
 
-        await new Promise(resolve => setTimeout(resolve, 1500))
+        await new Promise(resolve => setTimeout(resolve, paramLi.waitSec * 618))
     } else {
         canSubmit.value = false
 
-        await new Promise(resolve => setTimeout(resolve, 1500))
+        // await new Promise(resolve => setTimeout(resolve, 150))
+        await new Promise(resolve => setTimeout(resolve, paramLi.waitSec * 618))
 
         cmdStr.value = execCommand("auto")
 
-        await new Promise(resolve => setTimeout(resolve, 850))
+        await new Promise(resolve => setTimeout(resolve, paramLi.waitSec * 382))
     }
 }
 
@@ -717,7 +759,7 @@ const submitHandler = async evt => {
     evt.preventDefault()
 
     if (state.game.winnerIdx != null) {
-        startGame({ idx: ++state.game.idx, initCardLen })
+        startGame({ idx: ++state.game.idx })
 
         return
     }
