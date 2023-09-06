@@ -29,7 +29,3 @@ html {
     height: calc(100vh - var(--box-command-height));
     padding-bottom: calc(var(--box-command-height));
 }
-
-.container .col:first-child {
-    display: none;
-}

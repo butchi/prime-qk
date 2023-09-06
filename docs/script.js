@@ -40,8 +40,6 @@ const canSubmit = { value: false }
 
 const actionTarget = new EventTarget()
 
-const scoreElm = document.querySelector(".prime-qk-score code")
-
 const consoleElm = document.querySelector(".prime-qk-console")
 
 const cmdBoxElm = document.querySelector(".box-command")
@@ -93,8 +91,6 @@ const state = {
 
 const log = {
     render: _ => {
-        scoreElm.innerText = scoreMdSeq.join("\n")
-
         const scoreMd = scoreMdSeq.map(str => {
             if (!paramLi.isOpenCard && str.startsWith("    ")) {
                 const [player, seq] = str.slice(4).split(": ")
