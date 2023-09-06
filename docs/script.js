@@ -741,6 +741,12 @@ const startTurn = async ({ idx = 0 }) => {
         // await new Promise(resolve => setTimeout(resolve, 150))
         await new Promise(resolve => setTimeout(resolve, paramLi.waitSec * 618))
 
+        await new Promise(resolve => {
+            const wait = _ => (!paramLi.pause) ? resolve() : requestAnimationFrame(wait)
+
+            wait()
+        })
+
         cmdStr.value = execCommand("auto")
 
         await new Promise(resolve => setTimeout(resolve, paramLi.waitSec * 382))
