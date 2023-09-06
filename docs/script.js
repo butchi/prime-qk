@@ -34,8 +34,6 @@ gui.add(paramLi, "waitSec", 0, 5)
 gui.add(paramLi, "pause")
 gui.add(paramLi, "initialize")
 
-gui.close()
-
 const md = globalThis.markdownit({ html: true });
 
 const canSubmit = { value: false }
