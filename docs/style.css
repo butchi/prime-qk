@@ -17,6 +17,34 @@ html {
     /* その他のスタイルを追加 */
 }
 
+.prime-qk-console[data-hidden-h1="true"] h1 {
+    display: none;
+}
+.prime-qk-console[data-hidden-h2="true"] h2 {
+    display: none;
+}
+.prime-qk-console[data-hidden-h3="true"] h3 {
+    display: none;
+}
+.prime-qk-console[data-hidden-h4="true"] h4 {
+    display: none;
+}
+.prime-qk-console[data-hidden-h5="true"] h5 {
+    display: none;
+}
+.prime-qk-console[data-hidden-h6="true"] h6 {
+    display: none;
+}
+.prime-qk-console[data-hidden-p="true"] p {
+    display: none;
+}
+.prime-qk-console[data-hidden-bq="true"] blockquote {
+    display: none;
+}
+.prime-qk-console[data-hidden-code="true"] pre {
+    display: none;
+}
+
 .box-command .input-group {
     position: absolute;
 

@@ -14,6 +14,15 @@ const paramLi = {
     playerLen: 4,
     humLen: 1,
     isOpenCard: false,
+    isShowH1: true,
+    isShowH2: false,
+    isShowH3: true,
+    isShowH4: false,
+    isShowH5: false,
+    isShowH6: false,
+    isShowP: true,
+    isShowBq: true,
+    isShowCode: true,
 	pause: false,
     initCardLen: 11,
     waitSec: 1,
@@ -24,7 +33,38 @@ const paramLi = {
 
 gui.add(paramLi, "playerLen", 1, 4, 1)
 gui.add(paramLi, "humLen", 0, 4, 1)
-gui.add(paramLi, "isOpenCard").onChange(val => {
+
+const mdFolder = gui.addFolder("Markdown");
+mdFolder.add(paramLi, "isShowH1").onChange(val => {
+    consoleElm.setAttribute("data-hidden-h1", !val)
+})
+mdFolder.add(paramLi, "isShowH2").onChange(val => {
+    consoleElm.setAttribute("data-hidden-h2", !val)
+})
+mdFolder.add(paramLi, "isShowH3").onChange(val => {
+    consoleElm.setAttribute("data-hidden-h3", !val)
+})
+mdFolder.add(paramLi, "isShowH4").onChange(val => {
+    consoleElm.setAttribute("data-hidden-h4", !val)
+})
+mdFolder.add(paramLi, "isShowH5").onChange(val => {
+    consoleElm.setAttribute("data-hidden-h5", !val)
+})
+mdFolder.add(paramLi, "isShowH6").onChange(val => {
+    consoleElm.setAttribute("data-hidden-h6", !val)
+})
+mdFolder.add(paramLi, "isShowP").onChange(val => {
+    consoleElm.setAttribute("data-hidden-p", !val)
+})
+mdFolder.add(paramLi, "isShowBq").onChange(val => {
+    consoleElm.setAttribute("data-hidden-bq", !val)
+})
+mdFolder.add(paramLi, "isShowCode").onChange(val => {
+    consoleElm.setAttribute("data-hidden-code", !val)
+})
+mdFolder.close()
+
+gui.add(paramLi, "isOpenCard").onChange(_ => {
     log.render()
 })
 gui.add(paramLi, "initCardLen", 1, 23, 1).onChange(val => {
@@ -352,7 +392,7 @@ const execCommand = (inputStr = "") => {
             log.code(`${prependHtml} => ${Qk.fromArrayToString(hand)}`)
         }
 
-        log.bq(attackHtml)
+        log.p(attackHtml)
 
         Qk.sortArray(hand)
 
@@ -588,6 +628,16 @@ const execCommand = (inputStr = "") => {
 
 const init = _ => {
     scoreMdSeq.length = 0
+
+    consoleElm.setAttribute("data-hidden-h1", !paramLi.isShowH1)
+    consoleElm.setAttribute("data-hidden-h2", !paramLi.isShowH2)
+    consoleElm.setAttribute("data-hidden-h3", !paramLi.isShowH3)
+    consoleElm.setAttribute("data-hidden-h4", !paramLi.isShowH4)
+    consoleElm.setAttribute("data-hidden-h5", !paramLi.isShowH5)
+    consoleElm.setAttribute("data-hidden-h6", !paramLi.isShowH6)
+    consoleElm.setAttribute("data-hidden-p", !paramLi.isShowP)
+    consoleElm.setAttribute("data-hidden-bq", !paramLi.isShowBq)
+    consoleElm.setAttribute("data-hidden-code", !paramLi.isShowCode)
 
     Object.assign(state, {
         tourney: { ...stateTourneyDefault },
