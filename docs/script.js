@@ -416,7 +416,7 @@ const execCommand = (inputStr = "") => {
         // 現状はチートだがユーザーも使える
 
         const countEven = (str) => str.toUpperCase().replaceAll(/\|.*/g, "").replaceAll(/[A379JKX]/g, "").length
-        const sortAbsFunc = (a, b) => (new QkCardSequence(b).toQkNumber()) - (new QkCardSequence(a).toQkNumber())
+        const sortAbsFunc = (a, b) => (new QkCardSequence(a).toQkNumber()) - (new QkCardSequence(b).toQkNumber())
         const sortEvenCardFunc = (a, b) => countEven(b) - countEven(a)
 
         const { curCardStr } = state.set
@@ -540,6 +540,7 @@ const execCommand = (inputStr = "") => {
                 commandDraw()
             }
 
+            // TODO: 3枚出し以上をいい感じに出していく
             // if (hand.length >= 3) {
             //     const card3Arr = Array.from(getAttackCard(3))
 
