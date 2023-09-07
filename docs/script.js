@@ -150,9 +150,8 @@ const log = {
                 const bodyRepl = player.startsWith("hum") ? bodyStr : bodyStr.replaceAll(/[0-9AJQKTX]/g, "*")
 
                 if (cmdStr) {
-                    const cmdRepl = player.startsWith("hum") && cmdStr.startsWith("draw") ? cmdStr : cmdStr.replaceAll(/[0-9AJQKTX]/g, "*")
-
-                    str = `    ${player}: ${cmdRepl} => ${bodyRepl}`
+                    // TODO: ドローした時にドロー札も伏せる
+                    str = `    ${player}: ${cmdStr} => ${bodyRepl}`
                 } else {
                     str = `    ${player}: ${bodyRepl}`
                 }
