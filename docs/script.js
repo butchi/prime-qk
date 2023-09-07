@@ -13,7 +13,7 @@ const gui = new GUI()
 const paramLi = {
     playerLen: 4,
     humLen: 1,
-    isOpenCard: false,
+    isOpenCard: true,
     isShowH1: true,
     isShowH2: false,
     isShowH3: true,
@@ -67,7 +67,7 @@ mdFolder.close()
 gui.add(paramLi, "isOpenCard").onChange(_ => {
     log.render()
 })
-gui.add(paramLi, "initCardLen", 1, 23, 1).onChange(val => {
+gui.add(paramLi, "initCardLen", 0, 29, 1).onChange(val => {
     stateGameDefault.initCardLen = val
 })
 gui.add(paramLi, "waitSec", 0, 5)
@@ -99,6 +99,7 @@ const stateStageDefault = {
 const stateGameDefault = {
     idx: 0,
     deck: [],
+    initCardLen: paramLi.initCardLen,
     winnerIdx: null,
     playerArr: [],
     handArr: [],
@@ -674,7 +675,7 @@ const startStage = async ({ idx = 0 }) => {
     await startGame({ idx: ++state.game.idx  })
 }
 
-const startGame = async ({ idx = 0, initCardLen = 11 }) => {
+const startGame = async ({ idx = 0 }) => {
     const playerArr = new Array(paramLi.playerLen).fill(0).map((_, i) => {
         if (i < paramLi.humLen) {
             return "hum" + (i + 1)
@@ -695,7 +696,7 @@ const startGame = async ({ idx = 0, initCardLen = 11 }) => {
 
     state.set.idx = 0
 
-    const { deck, handArr } = game
+    const { deck, handArr, initCardLen } = game
 
     deck.sort(_ => Math.random() - 0.5)
     console.log("deck: ", deck)
