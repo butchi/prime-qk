@@ -13,7 +13,7 @@ const gui = new GUI()
 const paramLi = {
     playerLen: 4,
     humLen: 1,
-    isOpenCard: true,
+    isOpenCard: false,
     isShowH1: true,
     isShowH2: false,
     isShowH3: true,
@@ -150,7 +150,9 @@ const log = {
                 const bodyRepl = player.startsWith("hum") ? bodyStr : bodyStr.replaceAll(/[0-9AJQKTX]/g, "*")
 
                 if (cmdStr) {
-                    str = `    ${player}: ${cmdStr} => ${bodyRepl}`
+                    const cmdRepl = player.startsWith("hum") && cmdStr.startsWith("draw") ? cmdStr : cmdStr.replaceAll(/[0-9AJQKTX]/g, "*")
+
+                    str = `    ${player}: ${cmdRepl} => ${bodyRepl}`
                 } else {
                     str = `    ${player}: ${bodyRepl}`
                 }
@@ -539,15 +541,15 @@ const execCommand = (inputStr = "") => {
                 commandDraw()
             }
 
-            if (hand.length >= 3) {
-                const card3Arr = Array.from(getAttackCard(3))
+            // if (hand.length >= 3) {
+            //     const card3Arr = Array.from(getAttackCard(3))
 
-                if (card3Arr.length > 0) {
-                    card3Arr.sort(sortAbsFunc).sort(sortEvenCardFunc)
+            //     if (card3Arr.length > 0) {
+            //         card3Arr.sort(sortAbsFunc).sort(sortEvenCardFunc)
 
-                    return commandAttack(card3Arr[0])
-                }    
-            }
+            //         return commandAttack(card3Arr[0])
+            //     }    
+            // }
 
             if (hand.length >= 2) {
                 const card2Arr = Array.from(getAttackCard(2))
