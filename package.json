@@ -1,14 +1,23 @@
 {
-    "name": "prime-qk",
-    "version": "0.1.0",
-    "description": "Prime QK application.",
-    "main": "docs/index.html",
-    "scripts": {
-        "start": "http-server docs"
-    },
-    "author": "IWABUCHI Yu(u)ki <butchiyu+com-github@gmail.com>",
-    "license": "MIT",
-    "dependencies": {
-        "http-server": "^14.1.1"
-    }
+  "name": "vite-project",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/bootstrap": "^5.2.10",
+    "@types/markdown-it": "^14.1.2",
+    "bootstrap": "^5.3.3",
+    "bootstrap-icons": "^1.11.3",
+    "github-markdown-css": "^5.6.1",
+    "lil-gui": "^0.19.2",
+    "markdown-it": "^14.1.0",
+    "sass": "^1.78.0",
+    "typescript": "^5.5.3",
+    "vite": "^5.4.1"
+  }
 }

@@ -1,0 +1,64 @@
+@import 'bootstrap/scss/bootstrap';
+
+:root {
+  --nav-bar-height: 65px;
+  --pxPerRem: calc(1 / 16);
+  font-size: 16px;
+}
+
+html,
+body {
+  overflow-x: hidden;
+}
+
+body {
+  font-size: calc(13rem * var(--pxPerRem));
+
+  font-family: Helvetica, Arial, sans-serif;
+}
+
+.hand {
+  font-size: calc(35rem * var(--pxPerRem));
+}
+
+.hand[data-state='disabled'] {
+  color: red;
+}
+
+.hand span[data-selected='selected'] {
+  font-weight: bold;
+}
+
+.prime-qk-score {
+  height: 650px;
+
+  overflow-y: auto;
+}
+
+.prime-qk-score[data-hidden-h1='true'] h1 {
+  display: none;
+}
+.prime-qk-score[data-hidden-h2='true'] h2 {
+  display: none;
+}
+.prime-qk-score[data-hidden-h3='true'] h3 {
+  display: none;
+}
+.prime-qk-score[data-hidden-h4='true'] h4 {
+  display: none;
+}
+.prime-qk-score[data-hidden-h5='true'] h5 {
+  display: none;
+}
+.prime-qk-score[data-hidden-h6='true'] h6 {
+  display: none;
+}
+.prime-qk-score[data-hidden-p='true'] p {
+  display: none;
+}
+.prime-qk-score[data-hidden-bq='true'] blockquote {
+  display: none;
+}
+.prime-qk-score[data-hidden-code='true'] pre {
+  display: none;
+}
