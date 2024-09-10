@@ -1,4 +1,3 @@
-// TODO: ペナルティ
 // TODO: 合成数出し
 // TODO: ラマヌジャン革命
 // TODO: 素数候補提示
@@ -19,43 +18,31 @@ import 'github-markdown-css'
 import './scss/style.scss'
 import * as bootstrap from 'bootstrap'
 
-const humName = 'プレイヤー'
-const comName = 'COM1'
-
 console.log('Hello, world!')
 
 const appElm = document.querySelector('#app') as HTMLDivElement
 
 const handElm = appElm.querySelector('.hand') as HTMLDivElement
 
+const deck: QkCard[] = []
+const handCardArr: QkCard[] = []
+
 const renderHand = () => {
-  const humIdx = state.game.playerArr.indexOf(humName)
+  const cArr: QkCard[] = handCardArr
 
-  if (humIdx === -1) {
-    console.error('Player not found')
-
-    return
+  if (cArr.length === 0) {
+    handElm.innerHTML = '<span style="color: red;">Clear!</span>'
+  } else {
+    handElm.innerHTML = cArr
+      .map((card: QkCard) => `<span>${card.toString()}</span>`)
+      .join('')
   }
-
-  const cArr: QkCard[] = state.game.handArr[humIdx]
-  handElm.innerHTML = cArr
-    .map((card: QkCard) => `<span>${card.toString()}</span>`)
-    .join('')
 }
 
 const paramLi = {
   playerLen: 2,
   humLen: 1,
   isOpenCard: false,
-  isShowH1: true,
-  isShowH2: false,
-  isShowH3: true,
-  isShowH4: false,
-  isShowH5: false,
-  isShowH6: false,
-  isShowP: true,
-  isShowBq: true,
-  isShowCode: true,
   pause: false,
   initCardLen: 11,
   waitSec: 0.618,
@@ -82,41 +69,6 @@ const paramLi = {
 
 const gui = new GUI()
 
-// gui.add(paramLi, 'playerLen', 1, 4, 1)
-// gui.add(paramLi, 'humLen', 0, 4, 1)
-
-const mdFolder = gui.addFolder('Markdown')
-for (let level = 0; level < 6; level++) {
-  mdFolder.add(paramLi, `isShowH${level + 1}`).onChange((val: boolean) => {
-    const propStr = (!val).toString()
-    scoreElm.setAttribute(`data-hidden-h${level + 1}`, propStr)
-  })
-}
-mdFolder.add(paramLi, 'isShowP').onChange((val: boolean) => {
-  const propStr = (!val).toString()
-  scoreElm.setAttribute('data-hidden-p', propStr)
-})
-mdFolder.add(paramLi, 'isShowBq').onChange((val: boolean) => {
-  const propStr = (!val).toString()
-  scoreElm.setAttribute('data-hidden-bq', propStr)
-})
-mdFolder.add(paramLi, 'isShowCode').onChange((val: boolean) => {
-  const propStr = (!val).toString()
-  scoreElm.setAttribute('data-hidden-code', propStr)
-})
-mdFolder.close()
-
-gui.add(paramLi, 'isOpenCard').onChange(() => {
-  log.render()
-})
-gui.add(paramLi, 'initCardLen', 0, 29, 1).onChange((val: number) => {
-  stateGameDefault.initCardLen = val
-})
-gui.add(paramLi, 'waitSec', 0, 5)
-gui.add(paramLi, 'pause')
-gui.add(paramLi, 'initialize')
-gui.add(paramLi, 'showLogTxt')
-
 gui.close()
 
 let canSubmit: boolean = false
@@ -130,92 +82,6 @@ const cmdBoxElm = appElm.querySelector('.box-command') as HTMLDivElement
 const cmdInputElm = cmdBoxElm.querySelector('input') as HTMLInputElement
 
 const scoreMdSeq: string[] = []
-
-type StateTouney = {
-  idx: number
-  title: string
-  message: string
-}
-
-const stateTourneyDefault: StateTouney = {
-  idx: 0,
-  title: '素数大富豪コンソール',
-  message: '素数大富豪コンソールへようこそ！',
-}
-
-type StateStage = {
-  idx: number
-}
-
-const stateStageDefault: StateStage = {
-  idx: 0,
-}
-
-type StateGame = {
-  idx: number
-  deck: QkCard[]
-  initCardLen: number
-  winnerIdx: number | undefined
-  playerArr: string[]
-  handArr: QkCard[][]
-  rev: false
-}
-
-const stateGameDefault: StateGame = {
-  idx: 0,
-  deck: [],
-  initCardLen: paramLi.initCardLen,
-  winnerIdx: undefined,
-  playerArr: [],
-  handArr: [],
-  rev: false,
-}
-
-type StateSet = {
-  idx: number
-  curEntry: QkCardEntry | undefined
-  playerIdx: number | undefined
-  masterIdx: number | undefined
-  cutFlag: boolean
-  passFlag: boolean
-}
-
-const stateSetDefault: StateSet = {
-  idx: 0,
-  curEntry: undefined,
-  playerIdx: 0,
-  masterIdx: 0,
-  cutFlag: false,
-  passFlag: false,
-}
-
-type StateTurn = {
-  idx: number
-  draw: QkCard | undefined
-  pass: boolean
-}
-
-const stateTurnDefault: StateTurn = {
-  idx: 0,
-  draw: undefined,
-  pass: false,
-}
-
-type State = {
-  tourney: StateTouney
-  stage: StateStage
-  game: StateGame
-  set: StateSet
-  turn: StateTurn
-}
-
-const state: State = {
-  tourney: stateTourneyDefault,
-  stage: stateStageDefault,
-  game: stateGameDefault,
-  set: stateSetDefault,
-  turn: stateTurnDefault,
-}
 
 const log = {
   render: () => {
@@ -235,16 +101,10 @@ const log = {
             bodyStr = post
           }
 
-          const bodyRepl =
-            player === humName
-              ? bodyStr
-              : bodyStr.replaceAll(/[A2-9JQKTX]/g, '*')
-
           if (scoreCmdStr) {
-            // TODO: ドローした時にドロー札も伏せる
-            str = `    ${player}: ${scoreCmdStr} => ${bodyRepl}`
+            str = `    ${player}: ${scoreCmdStr} => ${bodyStr}`
           } else {
-            str = `    ${player}: ${bodyRepl}`
+            str = `    ${player}: ${bodyStr}`
           }
         }
 
@@ -317,35 +177,15 @@ const log = {
 }
 
 const execCommand = (inputStr = ''): string => {
-  const { game, set, turn } = state
-
-  const { deck, playerArr } = game
-  const { playerIdx } = set
-
-  if (playerIdx === undefined) {
-    console.error('No player')
-
-    return ''
-  }
-
-  const hand = game.handArr[playerIdx]
-  const handGroup = cArrToGroup(hand)
-
   const commandNoop = () => {
+    handCardArr.sort((a, b) => a.valueOf() - b.valueOf())
+
+    renderHand()
+
     return ''
   }
 
   const commandPass = () => {
-    log.code(
-      `${playerArr[playerIdx]}: pass => ${hand
-        .map((c: QkCard) => c.toString())
-        .join('')}`
-    )
-
-    if (hand.length > 0) {
-      set.passFlag = true
-    }
-
     cmdInputElm.value = ''
 
     return 'pass'
@@ -354,37 +194,21 @@ const execCommand = (inputStr = ''): string => {
   const commandDraw = () => {
     cmdInputElm.value = ''
 
-    if (turn.draw !== null) {
-      return ''
-    }
-
     const draw = deck.shift()
 
     if (draw === undefined) {
       console.error('Empty deck')
     } else {
-      turn.draw = draw
-
-      hand.push(draw)
+      handCardArr.push(draw)
     }
 
-    log.code(
-      `${playerArr[playerIdx]}: draw(${turn.draw}) => ${hand
-        .map((c: QkCard) => c.toString())
-        .join('')}`
-    )
-
     cmdInputElm.value = ''
-
-    log.bq('p: pass')
 
     return ''
   }
 
   const commandAttack = (inputStr: string) => {
-    console.log(inputStr)
-
-    // TODO: コマンド入力
+    // TODO: 合成数出し
     const cardEntry = QkCardEntry.from(inputStr)
 
     if (cardEntry === null) {
@@ -402,34 +226,15 @@ const execCommand = (inputStr = ''): string => {
     const factorArr = factor(inputNum)
     const isPrime = checkPrime(inputNum)
 
-    const drawStr = turn.draw ? `draw(${turn.draw}) ` : ''
-
-    let prependHtml = `${playerArr[playerIdx]}: ${drawStr}${hand
-      .map((c: QkCard) => c.toString())
-      .join('')}`
     let attackHtml = ''
     let isValid
 
-    if (
-      cardEntry.toArray().length > 0 &&
-      inputStr.replace(/\|.*/, '').length !== cardEntry.toArray().length &&
-      cardEntry.checkInclude({ handGroup })
-    ) {
-      log.bq(`枚数が不足しています len(${inputStr}) ≦ len(${hand})`)
-      return ''
-    }
-    if (inputNum <= cardEntry.toArray().length) {
-      log.bq(`数が不足しています ${inputNum} ≦ ${cardEntry.toArray().length}`)
-      return ''
-    }
     if (inputNum === null) {
     } else if (cardEntry.toString() === 'X') {
       attackHtml += `[x] **Joker**`
-      set.cutFlag = true
       isValid = true
     } else if (inputNum === 57n) {
       attackHtml += `[x] **GC**`
-      set.cutFlag = true
       isValid = true
     } else if (inputNum === 1n) {
       attackHtml += `[ ] ${inputNum} は素数ではありません`
@@ -450,10 +255,10 @@ const execCommand = (inputStr = ''): string => {
 
     if (isValid) {
       const didDiscard = cardEntry.toArray().every((c: QkCard) => {
-        const idx = hand.findIndex(
+        const idx = handCardArr.findIndex(
           (handCard: QkCard) => c.toString() === handCard.toString()
         )
-        const discard = hand.splice(idx, 1)[0]
+        const discard = handCardArr.splice(idx, 1)[0]
 
         if (discard.hasValue()) {
           deck.push(discard)
@@ -465,131 +270,73 @@ const execCommand = (inputStr = ''): string => {
       })
 
       if (didDiscard) {
+        renderHand()
+
         if (cmdInputElm) {
           cmdInputElm.value = ''
         }
       }
-
-      set.curEntry = cardEntry
-      set.masterIdx = playerIdx
-      set.passFlag = false
     } else {
       for (let i = 0; i < cardEntry.toArray().length; i++) {
         const val = deck.shift()
         if (val) {
-          hand.push(val)
+          handCardArr.push(val)
+
+          handElm.removeAttribute('data-state')
+
+          renderHand()
         }
       }
     }
 
-    if (hand.length === 0) {
-      game.winnerIdx = playerIdx
-    }
-
-    if (game.winnerIdx == null) {
-      log.code(
-        `${prependHtml} => ${hand.map((c: QkCard) => c.toString()).join('')}`
-      )
-    }
-
     log.p(attackHtml)
 
-    if (game.winnerIdx === playerIdx) {
-      canSubmit = false
-      log.bq(`${playerArr[playerIdx]} win!`)
-      log.bq(`Press Enter to continue.`)
-      console.info('score: ', scoreMdSeq.join('\n'))
-    }
     cmdInputElm.value = ''
 
     return inputStr
   }
 
-  const commanAuto = () => {
+  const commandAuto = () => {
     // 現状はチートだがユーザーも使える
     // TODO: オート入力再実装
 
     return commandPass()
   }
 
-  if (inputStr == null) {
-  } else if (inputStr === '') {
-    return commandNoop()
-  } else if (inputStr.toUpperCase() === 'PASS' || inputStr === 'p') {
+  if (inputStr === '') {
+  } else if (inputStr.toUpperCase() === 'PASS' || inputStr === '%') {
     return commandPass()
   } else if (inputStr.toUpperCase() === 'DRAW' || inputStr === 'd') {
     return commandDraw()
-  } else if (inputStr.toUpperCase() === 'AUTO' || inputStr === 'a') {
-    return commanAuto()
+  } else if (inputStr.toUpperCase() === 'AUTO' || inputStr === '!') {
+    return commandAuto()
+  } else if (inputStr.endsWith('?')) {
+    const tmpCardEntry = QkCardEntry.from(inputStr.slice(0, -1))
+
+    const tmpInputNum = tmpCardEntry?.valueOf()
+
+    if (tmpInputNum === undefined) {
+      return ''
+    }
+
+    const tmpFactorArr = factor(tmpInputNum)
+    const tmpIsPrime = checkPrime(tmpInputNum)
+
+    if (tmpInputNum === undefined) {
+    } else if (tmpIsPrime) {
+      alert('素数です！')
+    } else if (tmpFactorArr.length > 0) {
+      alert(tmpFactorArr.join(' × '))
+    }
   } else {
     return commandAttack(inputStr)
   }
 
-  return ''
+  return commandNoop()
 }
 
-const init = () => {
+const init = async () => {
   scoreMdSeq.length = 0
-
-  scoreElm.setAttribute('data-hidden-h1', (!paramLi.isShowH1).toString())
-  scoreElm.setAttribute('data-hidden-h2', (!paramLi.isShowH2).toString())
-  scoreElm.setAttribute('data-hidden-h3', (!paramLi.isShowH3).toString())
-  scoreElm.setAttribute('data-hidden-h4', (!paramLi.isShowH4).toString())
-  scoreElm.setAttribute('data-hidden-h5', (!paramLi.isShowH5).toString())
-  scoreElm.setAttribute('data-hidden-h6', (!paramLi.isShowH6).toString())
-  scoreElm.setAttribute('data-hidden-p', (!paramLi.isShowP).toString())
-  scoreElm.setAttribute('data-hidden-bq', (!paramLi.isShowBq).toString())
-  scoreElm.setAttribute('data-hidden-code', (!paramLi.isShowCode).toString())
-
-  startTourney({
-    idx: 1,
-  })
-}
-
-const startTourney = ({ idx = 0 }) => {
-  state.tourney = { ...stateTourneyDefault, idx }
-
-  const {
-    tourney: { title, message },
-  } = state
-
-  log.h1(title)
-
-  log.p(message)
-
-  startStage({ idx: 1 })
-}
-
-const startStage = async ({ idx = 0 }) => {
-  state.stage = { ...stateStageDefault, idx }
-
-  const { stage } = state
-
-  state.game.idx = 0
-
-  log.h2(`第${stage.idx}ステージ`)
-
-  await startGame({ idx: ++state.game.idx })
-}
-
-const startGame = async ({ idx = 0 }) => {
-  const playerArr = new Array(paramLi.playerLen).fill(0).map((_, i) => {
-    if (i < paramLi.humLen) {
-      return humName
-    } else {
-      return comName
-    }
-  })
-
-  playerArr.sort((_a, _b) => Math.random() - 0.5)
-
-  state.game = { ...stateGameDefault, playerArr, idx }
-
-  const { game } = state
-
-  state.set.idx = 0
-
-  const { deck, handArr, initCardLen } = game
 
   const fullChargeDeck = (arr: QkCard[], jokerLen: number = 2) => {
     arr.length = 0
@@ -609,161 +356,33 @@ const startGame = async ({ idx = 0 }) => {
 
   fullChargeDeck(deck)
 
-  log.h3(`第${game.idx}ゲーム`)
-
-  log.code(`山札: ${deck.map((c: QkCard) => c.toString()).join('')}`)
-
-  playerArr.forEach((name, i) => {
-    const hand: QkCard[] = []
-
-    hand.push(
-      ...deck.splice(0, initCardLen).sort((a, b) => a.valueOf() - b.valueOf())
-    )
-
-    handArr.push(hand)
-
-    log.code(`${name}: ${handArr[i].map((c: QkCard) => c.toString()).join('')}`)
-  })
-
-  for (let _i of new Array(9999)) {
-    if (game.winnerIdx === undefined) {
-      await startSet({
-        idx: ++state.set.idx,
-        playerIdx: state.set.masterIdx ?? state.set.playerIdx,
-      })
-    }
-  }
-}
-
-const startSet = async ({ idx = 0, playerIdx = 0 }) => {
-  state.set = { ...stateSetDefault, idx, playerIdx }
-
-  const { game, set } = state
-
-  if (set.playerIdx === undefined) {
-    return
-  }
-
-  state.turn.idx = 0
-
-  log.h4(`第${set.idx}セット`)
+  handCardArr.push(
+    ...deck.splice(0, 11).sort((a, b) => a.valueOf() - b.valueOf())
+  )
 
   renderHand()
 
-  const { playerArr } = game
+  canSubmit = true
 
-  for (let _i of new Array(9999)) {
-    if (game.winnerIdx !== undefined) {
-      return
-    }
+  cmdInputElm.blur()
+  cmdInputElm.focus()
 
-    if (state.turn.idx > 0) {
-      set.playerIdx = (set.playerIdx + 1) % playerArr.length
-    }
+  const youPromise = () =>
+    new Promise((resolve: Function, _reject) => {
+      actionTarget.addEventListener('action', (_evt: Event) => {
+        resolve()
+      })
+    })
 
-    if (set.cutFlag) {
-      return
-    }
+  await youPromise()
 
-    if (set.passFlag && set.playerIdx === set.masterIdx) {
-      return
-    }
-
-    await startTurn({ idx: ++state.turn.idx })
-  }
-}
-
-const startTurn = async ({ idx = 0 }) => {
-  state.turn = { ...stateTurnDefault, idx }
-
-  const { game, set, turn } = state
-
-  const { playerArr } = game
-
-  const { playerIdx, curEntry } = set
-
-  if (playerIdx === undefined) {
-    console.error('No player')
-
-    return
-  }
-
-  const name = playerArr[playerIdx]
-
-  // let cmdStr: string = ''
-
-  log.h5(`第${turn.idx}ターン`)
-
-  log.bq(`${name}の番です`)
-
-  if (curEntry === undefined) {
-    log.bq(`${name}が入力中`)
-  } else {
-    log.bq(
-      `数: ${curEntry} (枚数: ${
-        curEntry.toString().replace(/\|.*/, '').length
-      })`
-    )
-  }
-
-  log.code(
-    `${playerArr[playerIdx]}: ${game.handArr[playerIdx]
-      .map((c: QkCard) => c.toString())
-      .join('')}`
+  await new Promise((resolve: Function) =>
+    setTimeout(resolve, paramLi.waitSec * 1000)
   )
-
-  if (name === humName) {
-    canSubmit = true
-
-    cmdInputElm.blur()
-    cmdInputElm.focus()
-
-    // log.bq('コマンド一覧 d: draw p: pass')
-
-    await youPromise()
-
-    await new Promise((resolve: Function) =>
-      setTimeout(resolve, paramLi.waitSec * 1000)
-    )
-  } else {
-    canSubmit = false
-
-    // await new Promise(resolve => setTimeout(resolve, 150))
-    await new Promise((resolve: Function) =>
-      setTimeout(resolve, paramLi.waitSec * 1000)
-    )
-
-    await new Promise((resolve: Function) => {
-      const wait = () =>
-        !paramLi.pause ? resolve() : requestAnimationFrame(wait)
-
-      wait()
-    })
-
-    execCommand('auto')
-    // cmdStr = execCommand('auto')
-
-    await new Promise((resolve: Function) =>
-      setTimeout(resolve, paramLi.waitSec * 382)
-    )
-  }
 }
-
-const youPromise = () =>
-  new Promise((resolve: Function, _reject) => {
-    actionTarget.addEventListener('action', (_evt: Event) => {
-      resolve()
-    })
-  })
 
 const submitHandler = async (evt: Event) => {
   evt.preventDefault()
-
-  if (state.game.winnerIdx !== undefined) {
-    startGame({ idx: ++state.game.idx })
-
-    return
-  }
 
   if (!canSubmit) {
     return
@@ -779,15 +398,6 @@ const submitHandler = async (evt: Event) => {
 }
 
 const inputHandler = (evt: Event) => {
-  const humIdx = state.game.playerArr.indexOf(humName)
-
-  if (humIdx === -1) {
-    console.error('Player not found')
-
-    return
-  }
-
-  const handCardArr = state.game.handArr[humIdx]
   const targetElm = evt.target as HTMLInputElement
 
   const tempInputStr: string = targetElm?.value ?? ''
