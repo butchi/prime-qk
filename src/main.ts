@@ -14,7 +14,7 @@ const md = markdownit({
 })
 
 import 'bootstrap-icons/font/bootstrap-icons.css'
-import 'github-markdown-css'
+import 'github-markdown-css/github-markdown-light.css'
 import './scss/style.scss'
 import * as bootstrap from 'bootstrap'
 
