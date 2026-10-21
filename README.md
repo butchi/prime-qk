@@ -60,21 +60,59 @@ npm run preview --workspace=@prime-qk/db
 ```
 
 DB uses Vue 3, TypeScript, and Vite, and imports `@prime-qk/catalog` through
-npm workspaces. It currently shows an empty catalog; search and data generation
-are not implemented, and the inclusion of composite numbers is undecided.
+npm workspaces. The initial catalog includes all primes formed by concatenating
+1–3 ranks from A–K, without jokers. Each rank has four physical cards, and suits
+are ignored. Because at most three cards are used, this inventory cannot be
+exceeded. The 337 distinct numbers and all their ordered card representations
+are generated independently, not copied from a third-party catalog.
 
 `packages/catalog/src/` defines the initial public types and exports.
-`packages/catalog/data/entries.ts` holds the empty, read-only dataset.
+`packages/catalog/data/entries.ts` holds the generated dataset.
 `CatalogEntry.value` is a decimal integer string to avoid JavaScript number
 precision loss. Its mathematical classification is `prime`, `composite`, or
 `neither` (for example, 1); this does not define eligibility under game rules.
-The schema is provisional. No sample numbers or unverified records are included.
+Every included prime has a deterministic trial-division verification record;
+probabilistic primality testing is not used in this bounded dataset.
+Do not treat a number missing from this catalog as composite.
+
+The search supports exact value, inclusive minimum/maximum, card count, digit
+count, and numeric ascending/descending order. Conditions are combined with AND.
+An entry matches a card-count condition if at least one representation matches;
+only matching representations are shown in its expandable details.
+For example, 113 has `A A 3`, `A K`, and `J 3`; a two-card filter shows the latter
+two. Digit count describes the decimal number, not the number of card tokens.
+Results are paginated at 50 numbers per page using a lightweight text UI.
+
+Regenerate and validate from the repository root:
+
+```sh
+npm run generate --workspace=@prime-qk/catalog
+npm run test --workspace=@prime-qk/catalog
+```
+
+The generator enumerates all 2,379 ordered rank sequences (13 + 13² + 13³),
+performs trial division, groups by numeric value, and writes a stable dataset.
+Tests independently verify completeness using a sieve of Eratosthenes.
+Commit the generated data with generator changes; the app build does not run
+generation. Catalog integers are stored as strings, and searches use BigInt.
 
 Catalog exports TypeScript source for Vite to bundle; its build script performs
 type checking without generating artifacts. The DB output is `apps/db/dist/`.
 There is no dependency on a prebuilt catalog, so the DB build works independently.
-Existing game logic has not been moved to `packages/core`, and no data generation
-scripts have been added yet.
+Existing game logic has not been moved to `packages/core`.
+
+#### Implementation status and handoff
+
+- [x] Agree on initial scope: no jokers, 1–3 cards, primes only.
+- [x] Generate and verify the catalog with deterministic primality results.
+- [x] Add basic search, matching card representations, and paginated text UI.
+- [ ] Discuss the next increment before implementation: joker declarations,
+  hand-based searches, composite numbers, equivalence/dominance relations,
+  priorities, card UI, or a standalone primality checker.
+- [ ] Introduce probabilistic results and their evidence only when expanding
+  beyond a verified deterministic range.
+- [ ] Evaluate larger datasets and computation costs before choosing Web Workers,
+  server computation, caching, or SSR. The initial app remains static.
 
 ## Build and preview
 

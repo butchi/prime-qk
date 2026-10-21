@@ -1,2 +1,3 @@
 export { catalogEntries } from '../data/entries'
-export type { CatalogEntry, NumberClassification } from './types'
+export { searchCatalog, formatCards } from './search'
+export type { CatalogEntry, CatalogQuery, NumberClassification } from './types'

@@ -8,11 +8,13 @@
 - `apps/web-console`: Prime QK Console。既存の `_lib` もアプリ内で管理する。
 - `apps/kantan`: カンタン素数大富豪。ブラウザ版・CLI・テストを含む。
 - `apps/db`: 数の一覧・検索サイトの土台。Vue 3 + TypeScript + Vite を使用する。
-- `packages/catalog`: 数のカタログの型とデータ。現時点では空データを公開する。
-- `packages/core` とデータ生成用の `scripts` は未作成。
+- `packages/catalog`: 数のカタログの型・生成・検索処理とデータ。
+  初版はジョーカーなし・1〜3枚で作れる素数を収録し、試し割りで確定判定する。
+- `scripts/generate-catalog.ts`: カタログの再生成用スクリプト。
+- `packages/core` は未作成。
   共通化は必要になった段階で行い、既存ロジックを先回りして移動しない。
-- DB の収録範囲・合成数の扱い・検索仕様は未確定。
-  データや機能を追加する前に要件を確認する。
+- DB の初版は完全一致・数の範囲・枚数・桁数・昇降順検索とテキスト表示を提供する。
+  ジョーカー・合成数・手札検索などの範囲拡張は、実装前に要件を確認する。
 
 ## 開発
 
@@ -60,6 +62,8 @@ npm run dev --workspace=@prime-qk/db -- --port 5175 --strictPort
 ```sh
 npm run build --workspace=@prime-qk/db
 npm run build --workspace=@prime-qk/catalog
+npm run test --workspace=@prime-qk/catalog
+npm run generate --workspace=@prime-qk/catalog
 npm run test --workspace=@prime-qk/kantan
 npm run build
 ```

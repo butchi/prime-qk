@@ -7,9 +7,12 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "build": "tsc --noEmit"
+    "build": "tsc --noEmit",
+    "generate": "tsx ../../scripts/generate-catalog.ts",
+    "test": "node --import tsx --test test/*.test.ts"
   },
   "devDependencies": {
-    "typescript": "~5.7.2"
+    "typescript": "~5.7.2",
+    "tsx": "^4.20.3"
   }
 }
