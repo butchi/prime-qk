@@ -1,5 +1,7 @@
 # prime-qk
 
+[English](./README.md) | [日本語](./README.ja.md)
+
 An npm workspaces monorepo for Prime QK apps.
 
 ## Structure
@@ -9,9 +11,10 @@ prime-qk/
 ├── apps/
 │   ├── web-console/  # Prime QK Console (including the existing _lib)
 │   ├── kantan/       # Kantan Sosu Daifugo (Vue app and CLI)
-│   └── db/           # Number catalog site (Vue app, initial scaffold)
+│   └── db/           # Number catalog and search site (Vue app)
 ├── packages/
-│   └── catalog/      # Shared catalog types and data (currently empty)
+│   └── catalog/      # Shared catalog types, data, generation, and search
+├── scripts/          # Data generation scripts
 ├── package.json
 └── package-lock.json
 ```

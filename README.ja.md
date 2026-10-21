@@ -1,0 +1,194 @@
+# prime-qk
+
+[English](./README.md) | [日本語](./README.ja.md)
+
+素数大富豪関連のアプリを管理する npm workspaces モノレポです。
+
+## 構成
+
+```text
+prime-qk/
+├── apps/
+│   ├── web-console/  # Prime QK Console（既存の _lib を含む）
+│   ├── kantan/       # カンタン素数大富豪（ブラウザ版・CLI）
+│   └── db/           # 数のカタログ・検索サイト（Vue アプリ）
+├── packages/
+│   └── catalog/      # 共通のカタログ型・データ・生成・検索処理
+├── scripts/          # データ生成スクリプト
+├── package.json
+└── package-lock.json
+```
+
+## 開発
+
+以下のコマンドはリポジトリのルートで実行してください。
+
+```sh
+npm ci
+npm run dev
+```
+
+`npm run dev` は Prime QK Console を起動します。
+Console のスクリプトを明示的に実行する場合は、
+`npm run <script> --workspace=@prime-qk/web-console` を使用します。
+
+カンタン素数大富豪の起動:
+
+```sh
+npm run dev --workspace=@prime-qk/kantan
+```
+
+両アプリを同時に起動する場合は、別々のターミナルでポートを指定してください。
+
+```sh
+npm run dev --workspace=@prime-qk/web-console -- --port 5173 --strictPort
+npm run dev --workspace=@prime-qk/kantan -- --port 5174 --strictPort
+```
+
+カンタンには CLI とテストもあります。
+
+```sh
+npm run cli --workspace=@prime-qk/kantan
+npm run test --workspace=@prime-qk/kantan
+```
+
+アプリ固有の設定と取り込み元については
+[カンタンの README](./apps/kantan/README.md) を参照してください。
+既存のゲームロジックは、現時点では各アプリ内で管理しています。
+
+### 数のカタログ・検索サイト
+
+```sh
+npm run dev --workspace=@prime-qk/db -- --port 5175 --strictPort
+npm run build --workspace=@prime-qk/db
+npm run preview --workspace=@prime-qk/db
+```
+
+DB は Vue 3・TypeScript・Vite を使用し、
+npm workspaces を通じて `@prime-qk/catalog` を読み込みます。
+初版では、ジョーカーなしで A〜K のランクを1〜3枚連結して作れる素数をすべて収録します。
+各ランクは4枚あり、スートは区別しません。
+最大3枚なので、デッキ内の枚数上限を超えることはありません。
+重複を除いた337件の数と、そのすべての順序付きカード表現を独自に生成しており、
+外部のカタログから転載したデータではありません。
+
+`packages/catalog/src/` に公開する型とエクスポートを定義し、
+`packages/catalog/data/entries.ts` に生成済みデータを保存しています。
+`CatalogEntry.value` は JavaScript の数値精度の損失を避けるため、十進整数文字列で扱います。
+数学的な分類は `prime`（素数）、`composite`（合成数）、
+`neither`（どちらでもない数。例: 1）であり、ゲームのルール上の使用可否とは別です。
+
+収録している素数はすべて試し割りによる確定判定の情報を持ち、
+この範囲では確率的な素数判定を使用しません。
+一覧では単に「素数」と表示し、判定の確実性を各バッジに繰り返し表示する代わりに、
+折りたたみの「判定情報」から詳細を確認できます。
+今後、確率的な判定結果を導入する場合は、確定した素数とは区別し、
+「素数候補」などと表示します。
+カタログに載っていない数を、合成数とみなさないでください。
+
+検索条件は、数の完全一致・最小値と最大値（両端を含む）・カード枚数・桁数・
+数値の昇順と降順です。条件は AND で組み合わせます。
+カード枚数の条件に合う表現が少なくとも1通りあれば、その数を検索結果に含めます。
+展開した詳細には、条件に合うカード表現だけを表示します。
+例えば113の表現には `A A 3`・`A K`・`J 3` があり、
+2枚の条件では後者の2通りを表示します。
+桁数はカードのトークン数ではなく、十進表記の数の桁数です。
+軽量なテキスト UI を使用し、1ページに最大50件の数を表示します。
+
+データの再生成と検証は、リポジトリのルートから実行します。
+
+```sh
+npm run generate --workspace=@prime-qk/catalog
+npm run test --workspace=@prime-qk/catalog
+```
+
+生成処理は全2,379通り（13 + 13² + 13³）の順序付きランク列を列挙し、
+試し割りで判定して、数値ごとにまとめた再現可能なデータを書き出します。
+テストでは、独立したエラトステネスの篩で網羅性を検証します。
+生成処理を変更した場合は、生成済みデータも一緒にコミットしてください。
+アプリのビルド時にはデータ生成を実行しません。
+カタログ内の整数は文字列で保持し、検索には BigInt を使用します。
+
+catalog は Vite がバンドルする TypeScript ソースを公開します。
+catalog のビルドスクリプトは型チェックのみを行い、成果物を生成しません。
+DB の出力先は `apps/db/dist/` です。
+ビルド済み catalog に依存しないため、DB 単体でもビルドできます。
+既存のゲームロジックは、まだ `packages/core` に移していません。
+
+#### 実装状況と引き継ぎ
+
+- [x] 初版の範囲を合意: ジョーカーなし・1〜3枚・素数のみ。
+- [x] 確定的な素数判定によるカタログの生成と検証。
+- [x] 基本検索・条件に合うカード表現・ページ送り付きのテキスト UI。
+- [ ] 次の実装範囲を相談: ジョーカーの宣言値、手札検索、合成数、
+  同値・上位互換の関係、優先度、カード UI、独立した素数判定ツールなど。
+- [ ] 検証済みの確定判定範囲を超える段階でのみ、確率的な判定結果と根拠を導入する。
+- [ ] データ量と計算コストを評価してから、Web Worker・サーバー計算・キャッシュ・
+  SSR を選定する。初版は静的サイトのままとする。
+
+## ビルドとプレビュー
+
+```sh
+npm run build
+npm run preview
+```
+
+ビルドコマンドは、ビルドスクリプトを持つすべてのワークスペースを対象にします。
+Console の出力先は `apps/web-console/dist/` です。
+プレビューコマンドは、ビルド済みの Console を配信します。
+
+カンタンを個別にビルド・プレビューする場合:
+
+```sh
+npm run build --workspace=@prime-qk/kantan
+npm run preview --workspace=@prime-qk/kantan
+```
+
+カンタンの出力先は `apps/kantan/dist/` です。
+
+依存関係は各アプリの `package.json` に宣言し、
+ルートからの `npm install` で、ルートにある唯一のロックファイルを管理します。
+実行時ライブラリは `dependencies`、
+型定義・コンパイラ・ビルドツールは `devDependencies` に配置してください。
+個々のアプリ内にロックファイルを作らないでください。
+
+Console は Vite 5、カンタンと DB は Vite 6 を使用します。
+npm が Vue・Vuetify のプラグインを Console の Vite 5 と同じ階層に配置しても、
+ルートの `overrides` により、プラグインは Vite 6 を使用します。
+GTM プラグインの任意依存である Vue Router は、取り込み元と同じバージョン4系を維持し、
+Vue Router 5 の新しい Vite 要件が持ち込まれることを避けています。
+
+## Cloudflare Pages
+
+Console の Git 連携済み Pages プロジェクトでは、
+Cloudflare ダッシュボードに以下のビルド設定を指定してください。
+
+| 設定 | 値 |
+| --- | --- |
+| フレームワークプリセット | None |
+| ルートディレクトリ | 空欄（リポジトリ直下） |
+| ビルドコマンド | `npm run build --workspace=@prime-qk/web-console` |
+| ビルド出力ディレクトリ | `apps/web-console/dist` |
+
+npm がワークスペース設定とルートの `package-lock.json` を使用できるよう、
+依存関係はリポジトリのルートからインストールします。
+TypeScript と Vite のビルドには開発用依存関係も必要です。
+
+これらの設定は、以前のルート直下の `dist` 出力先を置き換えるものです。
+依存関係のインストールにはルートのワークスペース定義とロックファイルが必要なので、
+Pages のルートディレクトリを `apps/web-console` にしないでください。
+Console 専用のビルドコマンドを使用することで、他のアプリのビルドも避けられます。
+
+カンタン用に別の Pages プロジェクトを作成する場合も、ルートディレクトリは空欄にし、
+ビルドコマンドを `npm run build --workspace=@prime-qk/kantan`、
+出力ディレクトリを `apps/kantan/dist` にします。
+カンタンのローカルな Vite 環境変数ファイルは、リポジトリ直下ではなく
+`apps/kantan/` 内に置きます。
+
+DB 用に別の Pages プロジェクトを作成する場合も、ルートディレクトリは空欄にし、
+ビルドコマンドを `npm run build --workspace=@prime-qk/db`、
+出力ディレクトリを `apps/db/dist` にします。
+
+リポジトリを編集しただけでは、ダッシュボードの設定は変更されません。
+既存の Pages プロジェクトに設定を適用して、新しいデプロイを実行してください。
+公開後は Console の画面、favicon、コマンド入力、数譜モーダルを確認してください。
