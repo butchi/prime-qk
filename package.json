@@ -7,6 +7,17 @@
     "apps/*",
     "packages/*"
   ],
+  "overrides": {
+    "@vitejs/plugin-vue": {
+      "vite": "^6.4.3"
+    },
+    "vite-plugin-vuetify": {
+      "vite": "^6.4.3"
+    },
+    "@gtm-support/vue-gtm": {
+      "vue-router": "^4.5.0"
+    }
+  },
   "scripts": {
     "dev": "npm run dev --workspace=@prime-qk/web-console --",
     "build": "npm run build --workspaces --if-present",

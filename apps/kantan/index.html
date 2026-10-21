@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://pagead2.googlesyndication.com" />
+    <link rel="preconnect" href="https://googleads.g.doubleclick.net" />
+    <meta
+      name="description"
+      content="素数を使ったトランプゲーム「素数大富豪」を簡素化したゲーム「カンタン素数大富豪」（カン素）です。"
+    />
+    <meta name="author" content="岩淵夕希物智" />
+    <meta property="og:title" content="カンタン素数大富豪" />
+    <meta
+      property="og:description"
+      content="素数を使ったトランプゲーム「素数大富豪」を簡素化したゲーム「カンタン素数大富豪」（カン素）です。"
+    />
+    <meta
+      property="og:image"
+      content="https://kantan.primeqk.butchi.jp/ogp.png"
+    />
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="og:url" content="https://kantan.primeqk.butchi.jp/" />
+    <title>カンタン素数大富豪</title>
+    <script type="module">
+      ;(() => {
+        if (import.meta.env.VITE_ENABLE_REAL_ADS !== 'true') return
+
+        const adsenseClient = import.meta.env.VITE_ADSENSE_CLIENT ?? ''
+        if (!adsenseClient) return
+
+        const existing = document.querySelector('script[data-adsense-loader="true"]')
+        if (existing) return
+
+        const script = document.createElement('script')
+        script.async = true
+        script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(adsenseClient)}`
+        script.dataset.adsenseLoader = 'true'
+        script.dataset.adsenseStatus = 'loading'
+        script.addEventListener('load', () => {
+          script.dataset.adsenseStatus = 'loaded'
+        }, { once: true })
+        script.addEventListener('error', () => {
+          script.dataset.adsenseStatus = 'error'
+        }, { once: true })
+        document.head.appendChild(script)
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
