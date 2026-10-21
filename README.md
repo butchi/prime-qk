@@ -73,6 +73,10 @@ precision loss. Its mathematical classification is `prime`, `composite`, or
 `neither` (for example, 1); this does not define eligibility under game rules.
 Every included prime has a deterministic trial-division verification record;
 probabilistic primality testing is not used in this bounded dataset.
+The list labels these simply as primes; verification details are available in
+the collapsed "判定情報" section rather than repeating certainty in each badge.
+When probabilistic results are introduced, label those separately as prime
+candidates instead of treating them as confirmed primes.
 Do not treat a number missing from this catalog as composite.
 
 The search supports exact value, inclusive minimum/maximum, card count, digit

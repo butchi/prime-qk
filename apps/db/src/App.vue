@@ -43,7 +43,6 @@ function reset() {
       <p class="eyebrow">素数大富豪の数カタログ</p>
       <h1>Prime QK DB</h1>
       <p>トランプ52枚から、ジョーカーなし・1〜3枚で作れる素数を探せます。</p>
-      <p>全件を独自生成し、試し割りで素数であることを確定しています。</p>
     </header>
 
     <section aria-labelledby="search-heading">
@@ -100,10 +99,10 @@ function reset() {
       <ul v-else class="entries">
         <li v-for="entry in visibleEntries" :key="entry.value">
           <details>
-            <summary><strong>{{ entry.value }}</strong> <span class="badge">素数・確定</span>
+            <summary><strong>{{ entry.value }}</strong> <span class="badge">素数</span>
               <span>{{ entry.representations.length }} 通りのカード表現</span>
             </summary>
-            <p class="help">判定方法：試し割り（確定判定）。現在の検索条件に合う表現を表示しています。</p>
+            <p class="help">現在の検索条件に合う表現を表示しています。</p>
             <ul class="representations">
               <li v-for="ranks in entry.representations" :key="ranks.join(',')">
                 <code>{{ formatCards(ranks) }}</code>
@@ -111,6 +110,10 @@ function reset() {
                 <span>{{ ranks.join(' → ') }} → {{ entry.value }}</span>
               </li>
             </ul>
+            <details class="help">
+              <summary>判定情報</summary>
+              <p>判定方法：試し割り（確定判定）。</p>
+            </details>
           </details>
         </li>
       </ul>
