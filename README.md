@@ -39,3 +39,30 @@ built Console app.
 
 Keep dependencies in each app's package manifest and maintain the single
 root lockfile with `npm install` from the repository root.
+Runtime libraries belong in `dependencies`; types, compilers, and build tools
+belong in `devDependencies`. Do not create lockfiles inside individual apps.
+
+## Cloudflare Pages
+
+For the Console's Git-integrated Pages project, use the following build settings
+in the Cloudflare dashboard:
+
+| Setting | Value |
+| --- | --- |
+| Framework preset | None |
+| Root directory | Leave empty (repository root) |
+| Build command | `npm run build --workspace=@prime-qk/web-console` |
+| Build output directory | `apps/web-console/dist` |
+
+Install dependencies from the repository root so npm uses the workspace
+configuration and the root `package-lock.json`. Development dependencies must
+be installed for the TypeScript and Vite build.
+
+These settings replace any previous root-level `dist` output directory.
+Do not set the Pages root directory to `apps/web-console`: dependency
+installation needs the root workspace manifest and lockfile. Using the
+Console-specific build command also avoids building future apps.
+
+The dashboard settings are not changed by editing this repository. Apply the
+settings to the existing Pages project and trigger a new deployment; verify
+the deployed Console, its favicon, command input, and score modal afterward.
