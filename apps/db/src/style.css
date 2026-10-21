@@ -179,3 +179,14 @@ summary strong {
   gap: 8px 24px;
   margin-bottom: 8px;
 }
+
+.representations li:target,
+.representations li[data-selected] {
+  background: #ccfbf1;
+  outline: 2px solid #0f766e;
+  padding: 8px;
+}
+
+header {
+  margin-top: 24px;
+}

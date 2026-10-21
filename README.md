@@ -123,6 +123,30 @@ Existing game logic has not been moved to `packages/core`.
 
 ## Build and preview
 
+### DB URLs and static generation
+
+- `/` redirects to `/numbers`.
+- `/numbers` lists entries; query keys are `exact`, `min`, `max`, `cards`,
+  `digits`, `sort`, and `page`. Defaults and empty filters are omitted.
+- `/numbers/1213` identifies the integer; `#cards-12-13` highlights Q K.
+- `/sequences/12-13` is reserved for future sequence-specific pages.
+- Searches and pagination update browser history and restore on reload/back/forward.
+  Invalid, duplicate, or unknown conditions and out-of-range pages show errors.
+- Unlisted numbers return a 404 explaining the catalog scope, not a composite verdict.
+
+The DB build prerenders the list, all 337 detail pages, and a top-level `404.html`
+using Vue's server renderer at build time only. No runtime SSR or Workers are needed.
+Detail files such as `numbers/113.html` use Cloudflare Pages' extensionless URLs.
+Generated `_redirects` handles the root, trailing slashes, and leading zeros
+(one leading zero per redirect). Local preview also normalizes URLs and serves 404s.
+Absolute canonical and OGP URLs await confirmation of the production domain.
+
+```sh
+npm run test --workspace=@prime-qk/db
+```
+
+### Workspace builds
+
 ```sh
 npm run build
 npm run preview
