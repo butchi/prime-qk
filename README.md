@@ -184,7 +184,8 @@ values from the first tab-separated column if a flat list of distinct primes is 
 View/save links on the grouped page provide both formats.
 
 The grouped page also offers client-side custom exports, with a preview and TXT/JSON
-save buttons. Card count (1–3) and digit count (1–6) filter both exports; totals are
+save buttons. Custom exports and detailed catalog notes are collapsed by default
+to keep the start of the list in view. Card count (1–3) and digit count (1–6) filter both exports; totals are
 recalculated for the selection. JSON keeps the same version 2 structure, including
 both numbers and representations; `scope` describes the source catalog's limits.
 TXT can contain numbers only, individual card representations only, or both

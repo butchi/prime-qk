@@ -57,10 +57,13 @@ function download(format: 'txt' | 'json') {
     <header>
       <p class="eyebrow">QKサーチ</p>
       <h1>枚数・桁数別の素数一覧</h1>
-      <p>ジョーカーなし・1〜3枚で作れる素数{{ list.total }}個を、枚数と桁数ごとに掲載しています。</p>
-      <p>各分類内は重複なし・数値の昇順です。同じ数を異なる枚数で作れる場合は、それぞれの枚数に掲載します。枚数別の件数の合計は、異なる数の総数とは一致しません。</p>
-      <p class="help">独自に生成し、試し割りで素数と確認したデータです。ジョーカーあり・4枚以上は対象外です。</p>
-      <p class="help">数と、その枚数で作れるすべてのカード表記を併記します。A=1、T=10、J=11、Q=12、K=13。カード表記を選ぶと詳細の該当表現へ進めます。</p>
+      <p>ジョーカーなし・1〜3枚で作れる素数{{ list.total }}個。</p>
+      <details class="help">
+        <summary>一覧の見方・収録条件</summary>
+        <p>各分類内は重複なし・数値の昇順です。同じ数を異なる枚数で作れる場合は、それぞれの枚数に掲載します。枚数別の件数の合計は、異なる数の総数とは一致しません。</p>
+        <p>独自に生成し、試し割りで素数と確認したデータです。ジョーカーあり・4枚以上は対象外です。</p>
+        <p>数と、その枚数で作れるすべてのカード表記を併記します。A=1、T=10、J=11、Q=12、K=13。カード表記を選ぶと詳細の該当表現へ進めます。</p>
+      </details>
     </header>
     <nav class="actions" aria-label="一覧の目次">
       <a v-for="group in list.groups" :key="group.cardCount" :href="`#cards-${group.cardCount}`">{{ group.cardCount }}枚出し（{{ group.count }}個）</a>
@@ -72,8 +75,8 @@ function download(format: 'txt' | 'json') {
       <a href="/numbers/list.txt">TXTを表示</a> ·
       <a href="/numbers/list.txt" download>TXTを保存</a>
     </p>
-    <section aria-labelledby="export-heading">
-      <h2 id="export-heading">カスタム出力</h2>
+    <details class="custom-export">
+      <summary>カスタム出力（TXT・JSON）</summary>
       <div class="filters">
         <label>出力する枚数
           <select v-model="cardCount">
@@ -120,7 +123,7 @@ function download(format: 'txt' | 'json') {
         <button :disabled="selected.total === 0" @click="download('json')">カスタムJSONを保存</button>
       </div>
       <p v-if="downloadError" role="alert" class="error">{{ downloadError }}</p>
-    </section>
+    </details>
     <section v-for="group in list.groups" :key="group.cardCount" :aria-labelledby="`cards-${group.cardCount}`">
       <h2 :id="`cards-${group.cardCount}`">{{ group.cardCount }}枚出し（{{ group.count }}個）</h2>
       <div v-for="digits in group.digits" :key="digits.digitCount">
@@ -141,8 +144,66 @@ function download(format: 'txt' | 'json') {
 </template>
 
 <style scoped>
-.downloads {
+main {
+  padding-top: 24px;
+}
+
+h1 {
+  font-size: clamp(1.5rem, 5vw, 2.5rem);
+}
+
+header .eyebrow {
+  margin-bottom: 4px;
+}
+
+header {
+  margin-top: 12px;
+}
+
+section {
   margin-top: 24px;
+  padding: 16px;
+}
+
+@media (max-width: 480px) {
+  main {
+    padding: 16px;
+  }
+
+  .downloads {
+    font-size: 0.85rem;
+  }
+
+  h2,
+  h3 {
+    margin-bottom: 8px;
+  }
+
+  header h1,
+  header > p {
+    margin-bottom: 8px;
+  }
+
+  section {
+    margin-top: 16px;
+  }
+}
+
+header .help {
+  margin: 0 0 16px;
+}
+
+.custom-export {
+  margin-top: 16px;
+}
+
+.custom-export[open] > summary,
+header details[open] > summary {
+  margin-bottom: 16px;
+}
+
+.downloads {
+  margin-top: 16px;
 }
 
 .number-values {
