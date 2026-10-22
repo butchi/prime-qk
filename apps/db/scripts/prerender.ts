@@ -40,7 +40,7 @@ async function write(path: string, title: string, description: string, file: str
 }
 
 mkdirSync(new URL('numbers/', directory), { recursive: true })
-await write('/numbers', 'QKサーチ — 素数大富豪の数を検索・判定', 'カード枚数・桁数・数の範囲で素数を検索。最大200桁の整数の素数判定にも対応しています。', 'numbers.html')
+await write('/numbers', 'QKサーチ — 素数大富豪の数を検索・判定', 'カード枚数・桁数・数の範囲で素数を検索。双子・三つ子・四つ子素数の組も一覧できます。最大200桁の整数の素数判定にも対応しています。', 'numbers.html')
 await write('/numbers/list', '枚数・桁数別の素数一覧 | QKサーチ', `${catalogScopeDescription}。収録済み素数を枚数・桁数別に掲載。JSON・TXTでも取得できます。`, 'numbers/list.html')
 const list = createCatalogList()
 writeFileSync(new URL('numbers/list.json', directory), JSON.stringify(list, null, 2) + '\n')

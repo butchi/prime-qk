@@ -1,28 +1,48 @@
 <script setup lang="ts">
 import { computed, reactive, ref, onMounted, onUnmounted } from 'vue'
-import { catalogEntries, formatCards, searchCatalog, catalogScopeDescription, catalogCardCounts, catalogDigitCounts } from '@prime-qk/catalog'
+import { catalogEntries, formatCards, searchCatalog, catalogScopeDescription, catalogCardCounts, catalogDigitCounts, primeConstellations, searchPrimeConstellations } from '@prime-qk/catalog'
+import type { CatalogEntry, PrimeConstellationKind } from '@prime-qk/catalog'
 import { readSearch, searchUrl } from './urls'
+import type { SearchDraft } from './urls'
 
 const props = defineProps<{ url: string }>()
-const draft = reactive({
+const draft = reactive<SearchDraft>({
   exactValue: '', minValue: '', maxValue: '', cardCount: '', digitCount: '', sort: 'asc', hideDominated: false,
+  constellation: '', samePrefix: false,
 })
 const results = ref(searchCatalog(catalogEntries))
+const groups = ref<CatalogEntry[][]>([])
+const appliedKind = ref<'' | PrimeConstellationKind>('')
+const appliedSamePrefix = ref(false)
+const appliedLabel = computed(() => primeConstellations.find(item => item.id === appliedKind.value)?.label)
+const resultCount = computed(() => appliedKind.value ? groups.value.length : results.value.length)
 const error = ref('')
 const page = ref(1)
 const pageSize = 50
-const pageCount = computed(() => Math.max(1, Math.ceil(results.value.length / pageSize)))
+const pageCount = computed(() => Math.max(1, Math.ceil(resultCount.value / pageSize)))
 const visibleEntries = computed(() => results.value.slice((page.value - 1) * pageSize, page.value * pageSize))
+const visibleGroups = computed(() => groups.value.slice((page.value - 1) * pageSize, page.value * pageSize))
+
+function resolve(url: string) {
+  const state = readSearch(new URL(url, 'https://local.invalid').searchParams)
+  const kind = state.draft.constellation
+  const matches = kind ? [] : searchCatalog(catalogEntries, state.query)
+  const tuples = kind ? searchPrimeConstellations(catalogEntries, kind, state.query) : []
+  const count = kind ? tuples.length : matches.length
+  if (state.page > Math.max(1, Math.ceil(count / pageSize))) throw new Error('指定されたページはありません。')
+  results.value = matches
+  groups.value = tuples
+  appliedKind.value = kind
+  appliedSamePrefix.value = state.draft.samePrefix
+  page.value = state.page
+  error.value = ''
+  return state
+}
 
 function restore(url: string) {
   try {
-    const state = readSearch(new URL(url, 'https://local.invalid').searchParams)
-    const matches = searchCatalog(catalogEntries, state.query)
-    if (state.page > Math.max(1, Math.ceil(matches.length / pageSize))) throw new Error('指定されたページはありません。')
+    const state = resolve(url)
     Object.assign(draft, state.draft)
-    results.value = matches
-    page.value = state.page
-    error.value = ''
   } catch (cause) {
     error.value = cause instanceof Error ? cause.message : '検索条件を読み込めませんでした。'
   }
@@ -40,14 +60,7 @@ onUnmounted(() => window.removeEventListener('popstate', popstate))
 function search(targetPage = 1) {
   try {
     const url = searchUrl(draft, targetPage)
-    const state = readSearch(new URL(url, 'https://local.invalid').searchParams)
-    const matches = searchCatalog(catalogEntries, state.query)
-    if (targetPage > Math.max(1, Math.ceil(matches.length / pageSize))) {
-      throw new Error('指定されたページはありません。')
-    }
-    results.value = matches
-    error.value = ''
-    page.value = targetPage
+    resolve(url)
     window.history.pushState(null, '', url)
   } catch (cause) {
     error.value = cause instanceof Error ? cause.message : '検索に失敗しました。'
@@ -57,6 +70,7 @@ function search(targetPage = 1) {
 function reset() {
   Object.assign(draft, {
     exactValue: '', minValue: '', maxValue: '', cardCount: '', digitCount: '', sort: 'asc', hideDominated: false,
+    constellation: '', samePrefix: false,
   })
   search()
 }
@@ -78,6 +92,12 @@ function reset() {
       <h2 id="search-heading">検索条件</h2>
       <form @submit.prevent="search()" @reset.prevent="reset">
         <div class="filters">
+          <label>素数の種類
+            <select v-model="draft.constellation">
+              <option value="">すべて（数ごと）</option>
+              <option v-for="kind in primeConstellations" :key="kind.id" :value="kind.id">{{ kind.label }}</option>
+            </select>
+          </label>
           <label>数の完全一致
             <input v-model="draft.exactValue" type="text" inputmode="numeric" placeholder="例：113" />
           </label>
@@ -106,9 +126,14 @@ function reset() {
             </select>
           </label>
         </div>
+        <template v-if="draft.constellation">
+          <label class="dominance-option"><input v-model="draft.samePrefix" type="checkbox" />最下位桁以外が同じ</label>
+          <p class="help">十進表記の一の位だけが異なる組に絞ります。例：101・103・107 は対象、107・109・113 は対象外です。カード列の末尾1枚だけが異なることを保証する条件ではありません。</p>
+        </template>
         <label class="dominance-option"><input v-model="draft.hideDominated" type="checkbox" />下位互換を非表示</label>
         <p class="help">同じカード構成の並べ替えで作れる最大の素数の表現だけを残します。比較は他の検索条件で絞る前の全収録素数が対象です。</p>
         <p class="help">完全一致と範囲は併用できます。枚数は、条件を満たすカード表現がある数を検索します。</p>
+        <p v-if="draft.constellation" class="help">組の全員が収録済みで、範囲・枚数・桁数・下位互換の条件を全員が満たす組を表示します。完全一致は指定した数を含む組を探します。昇降順は組の最小値順です。各数のカード表現は個別のもので、組全体を1組のデッキから同時に作れるとは限りません。</p>
         <div class="actions">
           <button type="submit">検索</button>
           <button type="reset" class="secondary">条件をリセット</button>
@@ -119,14 +144,27 @@ function reset() {
 
     <section aria-labelledby="catalog-heading">
       <div class="section-heading">
-        <h2 id="catalog-heading">数のカタログ</h2>
-        <p role="status">検索結果：{{ results.length }} 件 / 収録数：{{ catalogEntries.length }} 件</p>
+        <h2 id="catalog-heading">{{ appliedLabel || '数のカタログ' }}</h2>
+        <p role="status">検索結果：{{ resultCount }} {{ appliedKind ? '組' : '件' }} / 収録数：{{ catalogEntries.length }} 件</p>
       </div>
       <p class="help">A=1、T=10、J=11、Q=12、K=13。スートは区別せず、並び順を保持します。</p>
-      <div v-if="results.length === 0" class="empty-state">
-        <h3>条件に合う数はありません</h3>
+      <p v-if="appliedKind" class="help">双子：p・p+2。三つ子：p・p+2・p+6 または p・p+4・p+6。四つ子：p・p+2・p+6・p+8。ここではこの差のパターンに限ります。全員が収録済みの組だけを表示し、一部が未収録の組は表示しません。</p>
+      <p v-if="appliedKind && appliedSamePrefix" class="help">適用中：最下位桁以外が同じ組のみ。</p>
+      <div v-if="resultCount === 0" class="empty-state">
+        <h3>{{ appliedKind ? '条件に合う組はありません' : '条件に合う数はありません' }}</h3>
         <p>{{ catalogScopeDescription }}の収録範囲です。5〜6枚は限定収録のため、結果なしは素数の不存在を意味しません。条件を変更して検索してください。</p>
       </div>
+      <ul v-else-if="appliedKind" class="entries constellation-entries">
+        <li v-for="group in visibleGroups" :key="group.map(entry => entry.value).join('-')">
+          <h3>{{ group.map(entry => entry.value).join('・') }}</h3>
+          <ul class="constellation-members">
+            <li v-for="entry in group" :key="entry.value">
+              <a :href="`/numbers/${entry.value}`">{{ entry.value }}</a>
+              <span>（<template v-for="(ranks, index) in entry.representations" :key="ranks.join('-')"><span v-if="index"> / </span><a :href="`/numbers/${entry.value}#cards-${ranks.join('-')}`"><code>{{ formatCards(ranks) }}</code></a></template>）</span>
+            </li>
+          </ul>
+        </li>
+      </ul>
       <ul v-else class="entries">
         <li v-for="entry in visibleEntries" :key="entry.value">
           <a :href="`/numbers/${entry.value}`">{{ entry.value }} の詳細</a>
@@ -149,9 +187,9 @@ function reset() {
           </details>
         </li>
       </ul>
-      <nav v-if="results.length > 0" aria-label="検索結果のページ" class="actions">
+      <nav v-if="resultCount > 0" aria-label="検索結果のページ" class="actions">
         <button class="secondary" :disabled="page === 1" @click="search(page - 1)">前へ</button>
-        <span>{{ page }} / {{ pageCount }} ページ（1ページ最大{{ pageSize }}件）</span>
+        <span>{{ page }} / {{ pageCount }} ページ（1ページ最大{{ pageSize }}{{ appliedKind ? '組' : '件' }}）</span>
         <button class="secondary" :disabled="page === pageCount" @click="search(page + 1)">次へ</button>
       </nav>
     </section>
@@ -162,6 +200,15 @@ function reset() {
 </template>
 
 <style scoped>
+.constellation-entries > li {
+  display: block;
+}
+.constellation-entries h3 {
+  margin-bottom: 8px;
+}
+.constellation-members {
+  padding-left: 24px;
+}
 .dominance-option {
   flex-direction: row;
   align-items: center;

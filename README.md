@@ -95,6 +95,23 @@ two. Digit count describes the decimal number, not the number of card tokens.
 Results are paginated at 50 numbers per page using a lightweight text UI.
 Search and export controls support up to 6 cards and 12 decimal digits.
 
+The search's prime-type selector lists twins `(p, p+2)`, triplets
+`(p, p+2, p+6)` or `(p, p+4, p+6)`, and quadruplets `(p, p+2, p+6, p+8)`.
+Only these gap patterns are used; the exceptional `(3, 5, 7)` is not included.
+Every member must be present in the catalog; missing partners are not inferred.
+Range (inclusive), card count, digits, and dominance filters apply to every member.
+Exact value finds groups containing that number. Members remain ascending; groups
+are sorted by their smallest value and paginated at 50 groups per page.
+Each member links to its number and matching card representations, independently
+of other members; the whole group need not fit in a single deck.
+For example: `/numbers?constellation=twin` or `/numbers?constellation=quadruplet&exact=11`.
+Type, filters, and pagination survive reload and browser history.
+For groups, “最下位桁以外が同じ” restricts all members to the same decimal
+prefix before the units digit. It retains `101, 103, 107` and `103, 107, 109`,
+but excludes `107, 109, 113`. This is not a guarantee that only the last card differs.
+The filter defaults off; share it with `/numbers?constellation=triplet&same-prefix=1`.
+Fixed and custom JSON/TXT exports remain number lists, not constellation exports.
+
 Regenerate and validate from the repository root:
 
 ```sh
