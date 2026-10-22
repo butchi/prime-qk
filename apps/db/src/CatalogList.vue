@@ -1,7 +1,51 @@
 <script setup lang="ts">
-import { createCatalogList } from './catalog-list'
+import { computed, ref } from 'vue'
+import { createCatalogList, customCatalogText } from './catalog-list'
+import type { TextExportOptions } from './catalog-list'
 
 const list = createCatalogList()
+const cardCount = ref<number | ''>('')
+const digitCount = ref<number | ''>('')
+const notation = ref<TextExportOptions['notation']>('both')
+const separator = ref<TextExportOptions['separator']>('\n')
+const headings = ref(true)
+const previewFormat = ref('txt')
+const downloadError = ref('')
+const selected = computed(() => createCatalogList({
+  cardCount: cardCount.value || undefined,
+  digitCount: digitCount.value || undefined,
+}))
+const text = computed(() => customCatalogText(selected.value, {
+  notation: notation.value, separator: separator.value, headings: headings.value,
+}))
+const json = computed(() => JSON.stringify(selected.value, null, 2) + '\n')
+const preview = computed(() => previewFormat.value === 'json' ? json.value : text.value)
+
+function download(format: 'txt' | 'json') {
+  downloadError.value = ''
+  let url: string | undefined
+  try {
+    url = URL.createObjectURL(new Blob([format === 'json' ? json.value : text.value], {
+      type: `${format === 'json' ? 'application/json' : 'text/plain'};charset=utf-8`,
+    }))
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `prime-qk-${cardCount.value || 'all'}cards-${digitCount.value || 'all'}digits.${format}`
+    document.body.append(link)
+    try {
+      link.click()
+    } finally {
+      link.remove()
+    }
+  } catch (cause) {
+    downloadError.value = cause instanceof Error ? cause.message : 'ファイルを保存できませんでした。プレビューからコピーしてください。'
+  } finally {
+    if (url) {
+      const objectUrl = url
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 1000)
+    }
+  }
+}
 </script>
 
 <template>
@@ -28,6 +72,55 @@ const list = createCatalogList()
       <a href="/numbers/list.txt">TXTを表示</a> ·
       <a href="/numbers/list.txt" download>TXTを保存</a>
     </p>
+    <section aria-labelledby="export-heading">
+      <h2 id="export-heading">カスタム出力</h2>
+      <div class="filters">
+        <label>出力する枚数
+          <select v-model="cardCount">
+            <option value="">すべて</option>
+            <option v-for="count in [1, 2, 3]" :key="count" :value="count">{{ count }}枚</option>
+          </select>
+        </label>
+        <label>出力する桁数
+          <select v-model="digitCount">
+            <option value="">すべて</option>
+            <option v-for="count in [1, 2, 3, 4, 5, 6]" :key="count" :value="count">{{ count }}桁</option>
+          </select>
+        </label>
+        <label>TXTの表記
+          <select v-model="notation">
+            <option value="number">数のみ</option>
+            <option value="cards">カード表記のみ</option>
+            <option value="both">数とカード表記</option>
+          </select>
+        </label>
+        <label>TXTの区切り
+          <select v-model="separator">
+            <option :value="'\n'">改行</option>
+            <option value=",">カンマ</option>
+            <option :value="'\t'">タブ</option>
+          </select>
+        </label>
+      </div>
+      <label class="heading-option"><input v-model="headings" type="checkbox" />TXTに枚数・桁数の見出しを付ける</label>
+      <p class="help">対象条件はTXT・JSON共通です。JSONには数と全カード表現を含めます。TXTのカード表記のみでは各表現を個別に、両方では「113 (AK / J3)」の形で出力します。分類順・数値昇順で、枚数をまたぐ重複は残します。画面の全件一覧・固定ファイルは変わりません。</p>
+      <p role="status">出力対象：異なる数 {{ selected.total }} 個</p>
+      <p v-if="selected.total === 0">この枚数・桁数に該当する数はありません。条件を変更してください。</p>
+      <label>プレビュー形式
+        <select v-model="previewFormat">
+          <option value="txt">TXT</option>
+          <option value="json">JSON</option>
+        </select>
+      </label>
+      <label>出力プレビュー
+        <textarea :value="preview" readonly rows="8" spellcheck="false" />
+      </label>
+      <div class="actions">
+        <button :disabled="selected.total === 0" @click="download('txt')">カスタムTXTを保存</button>
+        <button :disabled="selected.total === 0" @click="download('json')">カスタムJSONを保存</button>
+      </div>
+      <p v-if="downloadError" role="alert" class="error">{{ downloadError }}</p>
+    </section>
     <section v-for="group in list.groups" :key="group.cardCount" :aria-labelledby="`cards-${group.cardCount}`">
       <h2 :id="`cards-${group.cardCount}`">{{ group.cardCount }}枚出し（{{ group.count }}個）</h2>
       <div v-for="digits in group.digits" :key="digits.digitCount">
@@ -69,5 +162,23 @@ const list = createCatalogList()
 .card-labels {
   color: #475569;
   font-size: 0.9rem;
+}
+
+.heading-option {
+  flex-direction: row;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.heading-option input {
+  width: auto;
+}
+
+textarea {
+  width: 100%;
+  padding: 12px;
+  font-family: monospace;
+  resize: vertical;
+  margin-bottom: 16px;
 }
 </style>

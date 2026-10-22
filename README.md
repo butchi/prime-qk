@@ -183,6 +183,16 @@ Ignore blank lines and `#` lines when reading TXT programmatically, and deduplic
 values from the first tab-separated column if a flat list of distinct primes is needed.
 View/save links on the grouped page provide both formats.
 
+The grouped page also offers client-side custom exports, with a preview and TXT/JSON
+save buttons. Card count (1–3) and digit count (1–6) filter both exports; totals are
+recalculated for the selection. JSON keeps the same version 2 structure, including
+both numbers and representations; `scope` describes the source catalog's limits.
+TXT can contain numbers only, individual card representations only, or both
+(`113 (AK / J3)`), separated by newlines, commas, or tabs, with optional
+card-count/digit-count headings. Classification order and numeric order are retained;
+duplicates across card counts remain. Empty selections show feedback and disable saving.
+The complete on-page list and fixed export URLs are unchanged.
+
 ### Primality checker
 
 The checker automatically detects the input format without a mode selector.

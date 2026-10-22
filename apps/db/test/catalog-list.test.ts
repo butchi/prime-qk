@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { catalogEntries, formatCards } from '@prime-qk/catalog'
-import { createCatalogList, catalogListText } from '../src/catalog-list.ts'
+import { createCatalogList, catalogListText, customCatalogText } from '../src/catalog-list.ts'
 
 test('枚数・桁数別一覧は全表現を分類し、各分類内で数を重複させない', () => {
   const list = createCatalogList()
@@ -29,6 +29,7 @@ test('枚数・桁数別一覧は全表現を分類し、各分類内で数を�
       }
       return values
     })
+
     assert.equal(group.count, values.length)
     assert.deepEqual(new Set(values), new Set(expected.map(entry => entry.value)))
     values.forEach(value => unique.add(value))
@@ -41,6 +42,52 @@ test('枚数・桁数別一覧は全表現を分類し、各分類内で数を�
   assert.deepEqual(find(2, '113')?.representations.map(item => item.cards), ['AK', 'J3'])
   assert.deepEqual(find(3, '113')?.representations.map(item => item.cards), ['AA3'])
   assert.deepEqual(find(2, '1213')?.representations.map(item => item.cards), ['QK'])
+})
+
+test('カスタム出力の条件は枚数・桁数・全カード表現に適用され、総数を再計算する', () => {
+  for (const cardCount of [undefined, 1, 2, 3]) {
+    for (const digitCount of [undefined, 1, 2, 3, 4, 5, 6]) {
+      const list = createCatalogList({ cardCount, digitCount })
+      const expected = catalogEntries.filter(entry =>
+        (digitCount === undefined || entry.value.length === digitCount) &&
+        entry.representations.some(ranks => cardCount === undefined || ranks.length === cardCount))
+      assert.equal(list.total, expected.length)
+      for (const group of list.groups) {
+        if (cardCount !== undefined) assert.equal(group.cardCount, cardCount)
+        assert.equal(group.count, group.digits.reduce((sum, digits) => sum + digits.entries.length, 0))
+        for (const digits of group.digits) {
+          if (digitCount !== undefined) assert.equal(digits.digitCount, digitCount)
+          for (const entry of digits.entries) {
+            assert.ok(entry.representations.every(item => item.ranks.length === group.cardCount))
+          }
+        }
+      }
+    }
+  }
+  assert.deepEqual(createCatalogList({ cardCount: 1, digitCount: 6 }).groups, [])
+  assert.throws(() => createCatalogList({ cardCount: 4 }))
+  assert.throws(() => createCatalogList({ digitCount: 0 }))
+})
+
+test('カスタムTXTの全表記・区切り・見出しの組み合わせを検証する', () => {
+  const list = createCatalogList({ cardCount: 1, digitCount: 2 })
+  for (const separator of ['\n', ',', '\t'] as const) {
+    for (const [notation, items] of [
+      ['number', ['11', '13']], ['cards', ['J', 'K']], ['both', ['11 (J)', '13 (K)']],
+    ] as const) {
+      for (const headings of [false, true]) {
+        const text = customCatalogText(list, { notation, separator, headings })
+        assert.equal(text, `${headings ? '# 1枚2桁（2個）\n' : ''}${items.join(separator)}`)
+      }
+    }
+  }
+  const multiple = createCatalogList({ cardCount: 2, digitCount: 3 })
+  assert.ok(customCatalogText(multiple, { notation: 'both', separator: '\n', headings: false }).split('\n').includes('113 (AK / J3)'))
+  const cards = customCatalogText(multiple, { notation: 'cards', separator: ',', headings: false }).split(',')
+  assert.ok(cards.includes('AK'))
+  assert.ok(cards.includes('J3'))
+  assert.equal(customCatalogText(createCatalogList({ cardCount: 1, digitCount: 6 }),
+    { notation: 'number', separator: '\n', headings: true }), '')
 })
 
 test('JSONとUTF-8 TXTは同じ分類・件数・数値文字列を保持する', () => {

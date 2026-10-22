@@ -1,7 +1,13 @@
 import { catalogEntries, searchCatalog, formatCards } from '../../../packages/catalog/src/index'
 
-export function createCatalogList() {
-  const groups = [1, 2, 3].map(cardCount => {
+export function createCatalogList(filter: { cardCount?: number; digitCount?: number } = {}) {
+  if (filter.cardCount !== undefined && ![1, 2, 3].includes(filter.cardCount)) {
+    throw new Error('カード枚数は1〜3枚で指定してください。')
+  }
+  if (filter.digitCount !== undefined && ![1, 2, 3, 4, 5, 6].includes(filter.digitCount)) {
+    throw new Error('桁数は1〜6桁で指定してください。')
+  }
+  const groups = [1, 2, 3].filter(count => filter.cardCount === undefined || count === filter.cardCount).map(cardCount => {
     const entries = searchCatalog(catalogEntries, { cardCount })
     const digits = Array.from({ length: cardCount + 1 }, (_, index) => {
       const digitCount = cardCount + index
@@ -15,15 +21,36 @@ export function createCatalogList() {
           })),
         })),
       }
-    }).filter(group => group.entries.length > 0)
-    return { cardCount, count: entries.length, digits }
-  })
+    }).filter(group => group.entries.length > 0 &&
+      (filter.digitCount === undefined || group.digitCount === filter.digitCount))
+    return { cardCount, count: digits.reduce((sum, group) => sum + group.entries.length, 0), digits }
+  }).filter(group => group.count > 0)
   return {
     schemaVersion: 2,
     scope: { jokers: false, minCards: 1, maxCards: 3 },
-    total: catalogEntries.length,
+    total: new Set(groups.flatMap(group => group.digits.flatMap(digits => digits.entries.map(entry => entry.value)))).size,
     groups,
   }
+
+}
+
+export interface TextExportOptions {
+  notation: 'number' | 'cards' | 'both'
+  separator: '\n' | ',' | '\t'
+  headings: boolean
+}
+
+export function customCatalogText(list: ReturnType<typeof createCatalogList>, options: TextExportOptions): string {
+  return list.groups.flatMap(group => group.digits.map(digits => {
+    const items = digits.entries.flatMap(entry => {
+      const cards = entry.representations.map(item => item.cards)
+      if (options.notation === 'number') return [entry.value]
+      if (options.notation === 'cards') return cards
+      return [`${entry.value} (${cards.join(' / ')})`]
+    })
+    const body = items.join(options.separator)
+    return options.headings ? `# ${group.cardCount}枚${digits.digitCount}桁（${digits.entries.length}個）\n${body}` : body
+  })).join(options.headings ? '\n\n' : options.separator)
 }
 
 export function catalogListText(list: ReturnType<typeof createCatalogList>): string {
