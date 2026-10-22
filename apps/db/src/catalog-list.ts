@@ -1,6 +1,6 @@
 import { catalogEntries, searchCatalog, formatCards } from '../../../packages/catalog/src/index'
 
-export function createCatalogList(filter: { cardCount?: number; digitCount?: number } = {}) {
+export function createCatalogList(filter: { cardCount?: number; digitCount?: number; hideDominated?: boolean } = {}) {
   if (filter.cardCount !== undefined && ![1, 2, 3].includes(filter.cardCount)) {
     throw new Error('カード枚数は1〜3枚で指定してください。')
   }
@@ -8,7 +8,7 @@ export function createCatalogList(filter: { cardCount?: number; digitCount?: num
     throw new Error('桁数は1〜6桁で指定してください。')
   }
   const groups = [1, 2, 3].filter(count => filter.cardCount === undefined || count === filter.cardCount).map(cardCount => {
-    const entries = searchCatalog(catalogEntries, { cardCount })
+    const entries = searchCatalog(catalogEntries, { cardCount, hideDominated: filter.hideDominated })
     const digits = Array.from({ length: cardCount + 1 }, (_, index) => {
       const digitCount = cardCount + index
       return {

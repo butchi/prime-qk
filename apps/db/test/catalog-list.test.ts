@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { catalogEntries, formatCards } from '@prime-qk/catalog'
+import { catalogEntries, formatCards, searchCatalog } from '@prime-qk/catalog'
 import { createCatalogList, catalogListText, customCatalogText } from '../src/catalog-list.ts'
 
 test('枚数・桁数別一覧は全表現を分類し、各分類内で数を重複させない', () => {
@@ -88,6 +88,26 @@ test('カスタムTXTの全表記・区切り・見出しの組み合わせを�
   assert.ok(cards.includes('J3'))
   assert.equal(customCatalogText(createCatalogList({ cardCount: 1, digitCount: 6 }),
     { notation: 'number', separator: '\n', headings: true }), '')
+})
+
+test('下位互換フィルターは一覧・カスタム出力の表現と件数に共通で適用される', () => {
+  const list = createCatalogList({ hideDominated: true })
+  assert.equal(list.total, 220)
+  for (const group of list.groups) {
+    const actual = group.digits.flatMap(digits => digits.entries)
+    const expected = searchCatalog(catalogEntries, { cardCount: group.cardCount, hideDominated: true })
+    assert.equal(group.count, expected.length)
+    assert.deepEqual(actual.map(entry => entry.value), expected.map(entry => entry.value))
+    for (const entry of actual) {
+      assert.deepEqual(entry.representations.map(item => item.ranks),
+        expected.find(item => item.value === entry.value)!.representations)
+    }
+  }
+  const filtered = createCatalogList({ cardCount: 2, digitCount: 2, hideDominated: true })
+  const text = customCatalogText(filtered, { notation: 'both', separator: '\n', headings: false })
+  assert.ok(!text.includes('13 (A3)'))
+  assert.ok(text.includes('31 (3A)'))
+  assert.ok(!JSON.stringify(filtered).includes('"value":"13"'))
 })
 
 test('JSONとUTF-8 TXTは同じ分類・件数・数値文字列を保持する', () => {

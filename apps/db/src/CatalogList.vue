@@ -3,7 +3,8 @@ import { computed, ref } from 'vue'
 import { createCatalogList, customCatalogText } from './catalog-list'
 import type { TextExportOptions } from './catalog-list'
 
-const list = createCatalogList()
+const hideDominated = ref(false)
+const list = computed(() => createCatalogList({ hideDominated: hideDominated.value }))
 const cardCount = ref<number | ''>('')
 const digitCount = ref<number | ''>('')
 const notation = ref<TextExportOptions['notation']>('both')
@@ -14,6 +15,7 @@ const downloadError = ref('')
 const selected = computed(() => createCatalogList({
   cardCount: cardCount.value || undefined,
   digitCount: digitCount.value || undefined,
+  hideDominated: hideDominated.value,
 }))
 const text = computed(() => customCatalogText(selected.value, {
   notation: notation.value, separator: separator.value, headings: headings.value,
@@ -63,20 +65,22 @@ function download(format: 'txt' | 'json') {
         <p>各分類内は重複なし・数値の昇順です。同じ数を異なる枚数で作れる場合は、それぞれの枚数に掲載します。枚数別の件数の合計は、異なる数の総数とは一致しません。</p>
         <p>独自に生成し、試し割りで素数と確認したデータです。ジョーカーあり・4枚以上は対象外です。</p>
         <p>数と、その枚数で作れるすべてのカード表記を併記します。A=1、T=10、J=11、Q=12、K=13。カード表記を選ぶと詳細の該当表現へ進めます。</p>
+        <p>「下位互換を非表示」は同じカード構成の並べ替えで作れる最大の素数の表現だけを残します。1つでも表現が残れば数を表示します。比較対象は絞り込み前の全収録素数です。固定JSON・TXTと詳細ページは全表現を保持します。</p>
       </details>
     </header>
+    <label class="dominance-option"><input v-model="hideDominated" type="checkbox" />下位互換を非表示</label>
     <nav class="actions" aria-label="一覧の目次">
       <a v-for="group in list.groups" :key="group.cardCount" :href="`#cards-${group.cardCount}`">{{ group.cardCount }}枚出し（{{ group.count }}個）</a>
     </nav>
-    <p class="downloads">
-      データ：
-      <a href="/numbers/list.json">JSONを表示</a> ·
-      <a href="/numbers/list.json" download>JSONを保存</a> ·
-      <a href="/numbers/list.txt">TXTを表示</a> ·
-      <a href="/numbers/list.txt" download>TXTを保存</a>
-    </p>
     <details class="custom-export">
-      <summary>カスタム出力（TXT・JSON）</summary>
+      <summary>データ出力（カスタム・全件）</summary>
+      <p class="downloads">
+        全件データ（フィルターなし）：
+        <a href="/numbers/list.json">JSONを表示</a> ·
+        <a href="/numbers/list.json" download>JSONを保存</a> ·
+        <a href="/numbers/list.txt">TXTを表示</a> ·
+        <a href="/numbers/list.txt" download>TXTを保存</a>
+      </p>
       <div class="filters">
         <label>出力する枚数
           <select v-model="cardCount">
@@ -106,7 +110,7 @@ function download(format: 'txt' | 'json') {
         </label>
       </div>
       <label class="heading-option"><input v-model="headings" type="checkbox" />TXTに枚数・桁数の見出しを付ける</label>
-      <p class="help">対象条件はTXT・JSON共通です。JSONには数と全カード表現を含めます。TXTのカード表記のみでは各表現を個別に、両方では「113 (AK / J3)」の形で出力します。分類順・数値昇順で、枚数をまたぐ重複は残します。画面の全件一覧・固定ファイルは変わりません。</p>
+      <p class="help">下位互換フィルターは一覧・カスタム出力に共通です。枚数・桁数は出力だけに適用します。JSONには条件に合う数とカード表現を含めます。TXTのカード表記のみでは各表現を個別に、両方では「113 (AK / J3)」の形で出力します。分類順・数値昇順で、枚数をまたぐ重複は残します。固定ファイルは変わりません。</p>
       <p role="status">出力対象：異なる数 {{ selected.total }} 個</p>
       <p v-if="selected.total === 0">この枚数・桁数に該当する数はありません。条件を変更してください。</p>
       <label>プレビュー形式
@@ -232,6 +236,16 @@ header details[open] > summary {
 }
 
 .heading-option input {
+  width: auto;
+}
+
+.dominance-option {
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.dominance-option input {
   width: auto;
 }
 

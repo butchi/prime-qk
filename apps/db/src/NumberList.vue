@@ -5,7 +5,7 @@ import { readSearch, searchUrl } from './urls'
 
 const props = defineProps<{ url: string }>()
 const draft = reactive({
-  exactValue: '', minValue: '', maxValue: '', cardCount: '', digitCount: '', sort: 'asc',
+  exactValue: '', minValue: '', maxValue: '', cardCount: '', digitCount: '', sort: 'asc', hideDominated: false,
 })
 const results = ref(searchCatalog(catalogEntries))
 const error = ref('')
@@ -56,7 +56,7 @@ function search(targetPage = 1) {
 
 function reset() {
   Object.assign(draft, {
-    exactValue: '', minValue: '', maxValue: '', cardCount: '', digitCount: '', sort: 'asc',
+    exactValue: '', minValue: '', maxValue: '', cardCount: '', digitCount: '', sort: 'asc', hideDominated: false,
   })
   search()
 }
@@ -105,6 +105,8 @@ function reset() {
             </select>
           </label>
         </div>
+        <label class="dominance-option"><input v-model="draft.hideDominated" type="checkbox" />下位互換を非表示</label>
+        <p class="help">同じカード構成の並べ替えで作れる最大の素数の表現だけを残します。比較は他の検索条件で絞る前の全収録素数が対象です。</p>
         <p class="help">完全一致と範囲は併用できます。枚数は、条件を満たすカード表現がある数を検索します。</p>
         <div class="actions">
           <button type="submit">検索</button>
@@ -157,3 +159,14 @@ function reset() {
     </footer>
   </main>
 </template>
+
+<style scoped>
+.dominance-option {
+  flex-direction: row;
+  align-items: center;
+  margin-top: 16px;
+}
+.dominance-option input {
+  width: auto;
+}
+</style>

@@ -29,6 +29,19 @@ export function searchCatalog(
     throw new Error('並び順は昇順または降順で指定してください。')
   }
 
+  const maxima = new Map<string, bigint>()
+  const cardKey = (ranks: readonly number[]) => [...ranks].sort((a, b) => a - b).join('-')
+  if (query.hideDominated) {
+    for (const entry of entries) {
+      if (entry.classification !== 'prime') continue
+      const value = BigInt(entry.value)
+      for (const ranks of entry.representations) {
+        const key = cardKey(ranks)
+        const maximum = maxima.get(key)
+        if (maximum === undefined || value > maximum) maxima.set(key, value)
+      }
+    }
+  }
   const results: CatalogEntry[] = []
   for (const entry of entries) {
     const value = BigInt(entry.value)
@@ -37,7 +50,8 @@ export function searchCatalog(
     if (max !== undefined && value > max) continue
     if (query.digitCount !== undefined && entry.value.length !== query.digitCount) continue
     const representations = entry.representations.filter(
-      ranks => query.cardCount === undefined || ranks.length === query.cardCount,
+      ranks => (query.cardCount === undefined || ranks.length === query.cardCount) &&
+        (!query.hideDominated || entry.classification !== 'prime' || maxima.get(cardKey(ranks)) === value),
     )
     if (representations.length > 0) results.push({ ...entry, representations })
   }

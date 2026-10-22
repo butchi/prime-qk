@@ -7,10 +7,11 @@ export interface SearchDraft {
   cardCount: string
   digitCount: string
   sort: string
+  hideDominated: boolean
 }
 
 export function readSearch(params: URLSearchParams) {
-  const allowed = ['exact', 'min', 'max', 'cards', 'digits', 'sort', 'page']
+  const allowed = ['exact', 'min', 'max', 'cards', 'digits', 'sort', 'page', 'undominated']
   for (const key of params.keys()) {
     if (!allowed.includes(key)) throw new Error(`不明な検索条件です：${key}`)
     if (params.getAll(key).length !== 1) throw new Error(`検索条件が重複しています：${key}`)
@@ -21,10 +22,12 @@ export function readSearch(params: URLSearchParams) {
     if (!/^\d+$/.test(value)) throw new Error(`${key} は半角数字の整数で指定してください。`)
     return BigInt(value).toString()
   }
+  if (params.has('undominated') && params.get('undominated') !== '1') throw new Error('undominated は1で指定してください。')
   const draft: SearchDraft = {
     exactValue: number('exact'), minValue: number('min'), maxValue: number('max'),
     cardCount: number('cards'), digitCount: number('digits'),
     sort: params.get('sort') ?? 'asc',
+    hideDominated: params.has('undominated'),
   }
   if (!['asc', 'desc'].includes(draft.sort)) throw new Error('並び順が不正です。')
   const page = Number(number('page') || '1')
@@ -35,6 +38,7 @@ export function readSearch(params: URLSearchParams) {
     cardCount: draft.cardCount ? Number(draft.cardCount) : undefined,
     digitCount: draft.digitCount ? Number(draft.digitCount) : undefined,
     sort: draft.sort === 'desc' ? 'desc' : 'asc',
+    hideDominated: draft.hideDominated,
   }
   return { draft, query, page }
 }
@@ -48,6 +52,7 @@ export function searchUrl(draft: SearchDraft, page: number): string {
     if (value.trim()) params.set(key, value.trim())
   }
   if (draft.sort !== 'asc') params.set('sort', draft.sort)
+  if (draft.hideDominated) params.set('undominated', '1')
   if (page !== 1) params.set('page', String(page))
   const state = readSearch(params)
   for (const [key, value] of [

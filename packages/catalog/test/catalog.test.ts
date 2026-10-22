@@ -69,6 +69,24 @@ describe('1〜3枚の素数カタログ', () => {
     assert.deepEqual(searchCatalog(catalogEntries, { minValue: '999999999999999999999' }), [])
   })
 
+  it('下位互換の表現を除外し、他の絞り込み前の最大素数と比較する', () => {
+    const result = searchCatalog(catalogEntries, { hideDominated: true })
+    assert.equal(result.length, 220)
+    assert.deepEqual(result.find(entry => entry.value === '13')?.representations, [[13]])
+    assert.deepEqual(searchCatalog(catalogEntries, { exactValue: '13', cardCount: 2, hideDominated: true }), [])
+    assert.deepEqual(searchCatalog(catalogEntries, { minValue: '13', maxValue: '13', cardCount: 2, hideDominated: true }), [])
+    assert.ok(!result.some(entry => entry.value === '113'))
+    for (const entry of catalogEntries) {
+      const expected = entry.representations.filter(ranks => !catalogEntries.some(other =>
+        BigInt(other.value) > BigInt(entry.value) && other.representations.some(candidate =>
+          candidate.length === ranks.length &&
+          Array.from({ length: 13 }, (_, index) => index + 1).every(rank =>
+            candidate.filter(item => item === rank).length === ranks.filter(item => item === rank).length))))
+      assert.deepEqual(result.find(item => item.value === entry.value)?.representations ?? [], expected)
+    }
+    assert.deepEqual(searchCatalog([...catalogEntries].reverse(), { hideDominated: true }), result)
+  })
+
   it('不正な条件を明示的に拒否する', () => {
     for (const value of ['-1', '1.5', '1e3', '', '１２']) {
       assert.throws(() => searchCatalog(catalogEntries, { exactValue: value }))

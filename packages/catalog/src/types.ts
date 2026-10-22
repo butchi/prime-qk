@@ -17,4 +17,5 @@ export interface CatalogQuery {
   readonly cardCount?: number
   readonly digitCount?: number
   readonly sort?: 'asc' | 'desc'
+  readonly hideDominated?: boolean
 }

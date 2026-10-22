@@ -131,7 +131,7 @@ Existing game logic has not been moved to `packages/core`.
 - `/` provides the primality checker, with links to catalog search and number details.
   The legacy `/checker` redirects to `/`, preserving query parameters.
 - `/numbers` lists entries; query keys are `exact`, `min`, `max`, `cards`,
-  `digits`, `sort`, and `page`. Defaults and empty filters are omitted.
+  `digits`, `sort`, `page`, and `undominated`. Defaults and empty filters are omitted.
 - `/numbers/list` shows the complete catalog grouped by card count and digit count.
   `/numbers/list.json` and `/numbers/list.txt` provide the same grouped list as static files.
 - `/numbers/1213` identifies the integer; `#cards-12-13` highlights Q K.
@@ -193,6 +193,20 @@ TXT can contain numbers only, individual card representations only, or both
 card-count/digit-count headings. Classification order and numeric order are retained;
 duplicates across card counts remain. Empty selections show feedback and disable saving.
 The complete on-page list and fixed export URLs are unchanged.
+
+### Hiding dominated representations
+
+Search and the grouped list offer an opt-in filter that retains only representations
+of the largest prime obtainable by permuting the same card multiset (including rank
+multiplicities). Comparison uses the full catalog before other filters. A number
+remains if at least one representation survives. For example, 13 keeps `K` but loses
+`A3` because `3A` makes 31. Detail pages retain every representation.
+This is not game-state or joker-aware dominance.
+
+Search persists this option as `undominated=1` in URLs/history.
+The grouped list updates immediately and applies the same filter to custom TXT/JSON.
+Fixed export files remain complete and unfiltered; their links are inside the
+collapsed data-export panel so the list stays in the first viewport.
 
 ### Primality checker
 
