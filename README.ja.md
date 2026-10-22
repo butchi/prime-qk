@@ -355,9 +355,108 @@ Console 専用のビルドコマンドを使用することで、他のアプリ
 カンタンのローカルな Vite 環境変数ファイルは、リポジトリ直下ではなく
 `apps/kantan/` 内に置きます。
 
-DB 用に別の Pages プロジェクトを作成する場合も、ルートディレクトリは空欄にし、
-ビルドコマンドを `npm run build --workspace=@prime-qk/db`、
-出力ディレクトリを `apps/db/dist` にします。
+### QKサーチ（DB）の公開準備
+
+Console・カンタンとは別の **Pages** プロジェクトを、同じ `butchi/prime-qk` リポジトリに接続します。
+Workers のプロジェクトではありません。SSRはビルド時だけ実行し、配信は静的ファイルのみです。
+Pages Functions・APIキー・実行時の環境変数は不要です。ブラウザのWeb Workerは静的JSとして配信します。
+
+| 設定 | 値 |
+| --- | --- |
+| フレームワークプリセット | None |
+| 本番ブランチ | `production` |
+| ルートディレクトリ | 空欄（リポジトリ直下） |
+| ビルドシステム | v3 |
+| ビルドコマンド | `npm run build:pages --workspace=@prime-qk/db` |
+| ビルド出力ディレクトリ | `apps/db/dist` |
+| 環境変数（本番・プレビュー） | `NODE_VERSION=24.17.0` |
+| カスタムドメイン（公開時に追加） | `db.primeqk.butchi.jp` |
+
+Nodeのバージョンはローカル検証時と合わせます。npmはNodeに同梱されたものを使用します。
+Pagesの自動依存インストールを利用し、ルートのロックファイルと開発用依存関係もインストールします。
+`NODE_ENV=production` や `NPM_CONFIG_OMIT=dev` は設定しないでください。
+ルートを `apps/db` にするとワークスペースの解決が崩れるため、空欄を維持してください。
+既存アプリのPagesプロジェクトの設定は変更しません。
+
+通常の開発ブランチは `develop` です。本番公開には、検証済みの変更をコミットしてから
+`production` ブランチへ反映し、明示的にプッシュする必要があります。
+この準備作業では、ブランチ作成・マージ・コミット・プッシュ・デプロイ・DNS変更は行いません。
+新規PagesプロジェクトのGit接続自体が初回デプロイを開始するため、作成は公開作業として行ってください。
+プレビューブランチを許可すると、それらのプッシュでもプレビューデプロイが起動します。
+
+ビルド監視パスを絞る場合の包含対象:
+
+```text
+apps/db/*
+packages/catalog/*
+package.json
+package-lock.json
+```
+
+初回は既定の全パス監視でも構いません。catalogやルートの依存設定を除外しないでください。
+
+#### ローカル検証
+
+リポジトリ直下から実行します。
+
+```sh
+npm run test --workspace=@prime-qk/catalog
+npm run test --workspace=@prime-qk/db
+npm run build:pages --workspace=@prime-qk/db
+npm run preview --workspace=@prime-qk/db -- --host 127.0.0.1 --port 4175 --strictPort
+```
+
+新しい環境では事前にルートで `npm ci` を実行します。
+`build:pages` は通常ビルド後に `check:pages` を実行し、次を満たさなければ失敗します。
+
+- Freeプランの20,000ファイル・1ファイル25 MiB以内。
+- 全数の静的詳細HTML、カード表現アンカー、本番canonical・OG URL、参照アセットが存在する。
+- 判定・並べ替えのWorker、固定JSON/TXT、トップ階層の404と既定リダイレクトが揃っている。
+- ソースマップ・TypeScript/Vueソース・隠しファイルが公開出力に混入していない。
+
+出力だけを再検証する場合は `npm run check:pages --workspace=@prime-qk/db` を実行します。
+Pages固有の配信・リダイレクトは、認証不要のローカルエミュレーターでも確認できます。
+初回のコマンドはnpmキャッシュにWranglerを取得しますが、プロジェクトの依存関係には追加しません。
+
+```sh
+WRANGLER_SEND_METRICS=false npm exec --yes --package=wrangler@4.151.3 -- wrangler pages dev apps/db/dist --ip 127.0.0.1 --port 4176
+```
+
+`vite preview` は作業用プレビューです。Cloudflare固有の`.html`正規化や`_redirects`の確認には
+上記エミュレーターまたは公開後の実際のPagesを使ってください。
+Pagesでは`.html`ファイルを拡張子なしで配信します。`numbers/index.html`方式や
+`/* /index.html 200`のSPAリライトは追加しません。トップ階層の`404.html`で実際の404を維持します。
+
+#### 公開時のチェック
+
+1. 本番ブランチの準備後、上記設定でPagesプロジェクトを作成し、ビルドログの検証成功を確認します。
+2. 発行された`pages.dev`でトップ・検索・詳細・一覧・JSON/TXT・判定Workerが動くことを確認します。
+3. Pagesプロジェクトの **Custom domains** から `db.primeqk.butchi.jp` を追加します。
+   DNSは画面の案内に従って設定します。Pagesへの関連付けを行わずCNAMEだけを追加しないでください。
+   同じアカウントで管理するゾーンなら自動作成、外部DNSなら発行された実際の`<project>.pages.dev`がCNAMEの接続先です。
+4. ドメインとTLSが有効になった後、カスタムドメインで以下を確認します。
+   canonical・OG URLは既にこのドメインを指します。HTML向けに独自の長期キャッシュルールは設定せず、
+   Pages既定のキャッシュを利用します。
+
+| 確認するパス・操作 | 期待する結果 |
+| --- | --- |
+| `/`、`/?sequence=12-13` | 判定画面・QKの素数判定・並べ替え探索 |
+| `/numbers?cards=6&digits=12` | 189件、限定収録の注意 |
+| `/numbers?constellation=triplet&same-prefix=1&min=101&max=113` | 101・103・107 と 103・107・109 の2組 |
+| `/numbers/1213`、`/numbers/131313131011` | 200、QK・KKKKTJの表現 |
+| `/numbers/list`、`/numbers/list.json`、`/numbers/list.txt` | 一覧・3,302個のデータ・6枚までの範囲情報 |
+| `/checker?value=1213`、`/checker/?value=1213` | 301でクエリを保ったトップへ |
+| `/numbers/`、`/numbers/1213/`、`/numbers/1213.html` | 末尾スラッシュ・拡張子なしへ正規化 |
+| `/numbers/001213` | リダイレクトを経て`/numbers/1213`へ（先頭ゼロは1回に1個除去） |
+| `/numbers/4`、存在しないパス | 実際のHTTP 404。トップへフォールバックしない |
+| 「QKサーチ」をタップ | クエリなしの`/`へ戻る |
+
+公式資料:
+[モノレポ](https://developers.cloudflare.com/pages/configuration/monorepos/)、
+[ビルド環境](https://developers.cloudflare.com/pages/configuration/build-image/)、
+[配信と404](https://developers.cloudflare.com/pages/configuration/serving-pages/)、
+[公開上限](https://developers.cloudflare.com/pages/platform/limits/)、
+[カスタムドメイン](https://developers.cloudflare.com/pages/configuration/custom-domains/)。
 
 リポジトリを編集しただけでは、ダッシュボードの設定は変更されません。
 既存の Pages プロジェクトに設定を適用して、新しいデプロイを実行してください。

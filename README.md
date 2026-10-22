@@ -331,8 +331,99 @@ For a separate Kantan Pages project, keep the root directory empty and use
 `apps/kantan/dist`. Kantan's local Vite environment files belong in
 `apps/kantan/`, not the repository root.
 
-For a separate DB Pages project, keep the root directory empty and use
-`npm run build --workspace=@prime-qk/db` with the output directory `apps/db/dist`.
+### QK Search (DB) deployment preparation
+
+Connect a separate **Pages** project to `butchi/prime-qk`; do not modify the
+Console or Kantan projects. SSR runs only at build time. Hosting is static:
+no Pages Functions, API keys, or runtime environment variables are needed.
+Browser Web Workers are served as static JavaScript.
+
+| Setting | Value |
+| --- | --- |
+| Framework preset | None |
+| Production branch | `production` |
+| Root directory | Empty (repository root) |
+| Build system | v3 |
+| Build command | `npm run build:pages --workspace=@prime-qk/db` |
+| Build output directory | `apps/db/dist` |
+| Production and preview environment | `NODE_VERSION=24.17.0` |
+| Custom domain (add when publishing) | `db.primeqk.butchi.jp` |
+
+Use Node's bundled npm and Pages' automatic dependency installation with the root
+lockfile, including dev dependencies. Do not set `NODE_ENV=production` or
+`NPM_CONFIG_OMIT=dev`. Keep the root directory empty for workspace resolution.
+Development currently uses `develop`; publishing requires committing the verified
+changes, integrating them into `production`, and explicitly pushing that branch.
+This preparation does not create branches, merge, commit, push, deploy, or change DNS.
+Creating a Git-connected Pages project itself triggers its initial deployment.
+Allowing preview branches also enables deployments on pushes to those branches.
+
+Optional build watch include paths (the default of watching all paths also works):
+
+```text
+apps/db/*
+packages/catalog/*
+package.json
+package-lock.json
+```
+
+Do not exclude the shared catalog or root dependency configuration.
+Validate from the repository root (`npm ci` first on a fresh environment):
+
+```sh
+npm run test --workspace=@prime-qk/catalog
+npm run test --workspace=@prime-qk/db
+npm run build:pages --workspace=@prime-qk/db
+npm run preview --workspace=@prime-qk/db -- --host 127.0.0.1 --port 4175 --strictPort
+```
+
+`build:pages` builds and runs `check:pages`, failing if the Free plan's
+20,000-file / 25-MiB-per-file limits are exceeded, any detail HTML/card anchor/
+production canonical/OG URL/referenced asset is missing, or Workers, fixed exports,
+top-level 404, and redirects are incorrect. It also rejects source maps, TS/Vue
+sources, and hidden files in the output. Recheck existing output using
+`npm run check:pages --workspace=@prime-qk/db`.
+
+For Pages-specific local routing validation without authentication or deployment:
+
+```sh
+WRANGLER_SEND_METRICS=false npm exec --yes --package=wrangler@4.151.3 -- wrangler pages dev apps/db/dist --ip 127.0.0.1 --port 4176
+```
+
+The first invocation downloads Wrangler into npm's cache, not project dependencies.
+Vite preview is not a substitute for checking Pages' extensionless HTML routes and
+`_redirects`. Keep flat `.html` outputs and top-level `404.html`; do not add
+`numbers/index.html` routing or an SPA catch-all rewrite.
+
+When publishing:
+
+1. Prepare the production branch and create the Pages project with the settings above.
+   Check the build log for successful output validation.
+2. Check the assigned `pages.dev` URL before adding the custom domain.
+3. Add `db.primeqk.butchi.jp` through the project's **Custom domains** section.
+   Follow its DNS instructions: use the actual assigned `<project>.pages.dev` CNAME
+   target if DNS is external. Do not add a CNAME without associating the domain with Pages.
+4. Once the domain and TLS are active, verify on the custom domain. Canonical and OG URLs
+   already point there. Use Pages' default caching rather than long-lived HTML cache rules.
+
+| Check | Expected |
+| --- | --- |
+| `/` and `/?sequence=12-13` | Checker, prime verdict and permutation search for QK |
+| `/numbers?cards=6&digits=12` | 189 results and restricted-coverage notice |
+| `/numbers?constellation=triplet&same-prefix=1&min=101&max=113` | Two groups: 101/103/107 and 103/107/109 |
+| `/numbers/1213` and `/numbers/131313131011` | 200, QK / KKKKTJ representations |
+| `/numbers/list`, `/numbers/list.json`, `/numbers/list.txt` | Full 3,302-number catalog, scope through six cards |
+| `/checker?value=1213` and `/checker/?value=1213` | 301 to `/`, preserving the query |
+| `/numbers/`, `/numbers/1213/`, `/numbers/1213.html` | Slashless, extensionless canonical routes |
+| `/numbers/001213` | Redirect to `/numbers/1213`, removing one leading zero per hop |
+| `/numbers/4` and unknown paths | Genuine HTTP 404, not a home fallback |
+| Tap “QKサーチ” | Query-free `/` |
+
+Official references: [monorepos](https://developers.cloudflare.com/pages/configuration/monorepos/),
+[build image](https://developers.cloudflare.com/pages/configuration/build-image/),
+[serving/404](https://developers.cloudflare.com/pages/configuration/serving-pages/),
+[limits](https://developers.cloudflare.com/pages/platform/limits/),
+and [custom domains](https://developers.cloudflare.com/pages/configuration/custom-domains/).
 
 The dashboard settings are not changed by editing this repository. Apply the
 settings to the existing Pages project and trigger a new deployment; verify

@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build && vite build --ssr src/entry-server.ts --outDir dist-ssr && tsx scripts/prerender.ts",
+    "build:pages": "npm run build && npm run check:pages",
+    "check:pages": "tsx scripts/check-pages.ts",
     "preview": "vite preview",
     "test": "node --import tsx --test test/*.test.ts"
   },
