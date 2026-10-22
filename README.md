@@ -128,11 +128,12 @@ Existing game logic has not been moved to `packages/core`.
 
 ### DB URLs and static generation
 
-- `/` redirects to `/numbers`.
+- `/` provides the primality checker, with links to catalog search and number details.
+  The legacy `/checker` redirects to `/`, preserving query parameters.
 - `/numbers` lists entries; query keys are `exact`, `min`, `max`, `cards`,
   `digits`, `sort`, and `page`. Defaults and empty filters are omitted.
 - `/numbers/1213` identifies the integer; `#cards-12-13` highlights Q K.
-- `/checker?value=1213` checks an integer; `/checker?sequence=12-13` checks Q K.
+- `/?value=1213` checks an integer; `/?sequence=12-13` checks Q K.
 - `/sequences/12-13` is reserved for future sequence-specific pages.
 - Searches and pagination update browser history and restore on reload/back/forward.
   Invalid, duplicate, or unknown conditions and out-of-range pages show errors.
@@ -141,7 +142,7 @@ Existing game logic has not been moved to `packages/core`.
 The DB build prerenders the list, checker, all 337 detail pages, and a top-level `404.html`
 using Vue's server renderer at build time only. No runtime SSR or Workers are needed.
 Detail files such as `numbers/113.html` use Cloudflare Pages' extensionless URLs.
-Generated `_redirects` handles the root, trailing slashes, and leading zeros
+Generated `_redirects` handles the legacy checker URL, trailing slashes, and leading zeros
 (one leading zero per redirect). Local preview also normalizes URLs and serves 404s.
 The production origin is `https://db.primeqk.butchi.jp`. Generated list and detail
 pages include absolute canonical and Open Graph URLs, titles, and descriptions.

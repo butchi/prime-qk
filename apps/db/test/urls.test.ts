@@ -3,7 +3,10 @@ import { test } from 'node:test'
 import { readSearch, searchUrl, canonicalPath } from '../src/urls.ts'
 
 test('URLの正規化と検索条件の往復', () => {
-  assert.equal(canonicalPath('/'), '/numbers')
+  assert.equal(canonicalPath('/'), '/')
+  assert.equal(canonicalPath('/checker'), '/')
+  assert.equal(canonicalPath('/checker/'), '/')
+  assert.equal(canonicalPath('/numbers/'), '/numbers')
   assert.equal(canonicalPath('/numbers/00113/'), '/numbers/113')
   const state = readSearch(new URLSearchParams('exact=00113&cards=2&sort=desc&page=2'))
   assert.equal(state.query.exactValue, '113')

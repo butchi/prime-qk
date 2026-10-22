@@ -61,7 +61,7 @@ export function searchUrl(draft: SearchDraft, page: number): string {
 
 export function canonicalPath(path: string): string {
   const stripped = path.replace(/\/+$/, '') || '/'
-  if (stripped === '/') return '/numbers'
+  if (stripped === '/checker') return '/'
   const match = /^\/numbers\/(\d+)$/.exec(stripped)
   return match ? `/numbers/${BigInt(match[1]!).toString()}` : stripped
 }

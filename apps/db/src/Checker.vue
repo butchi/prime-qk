@@ -34,7 +34,7 @@ function check(updateUrl = true) {
     value.value = String(parsed)
     if (updateUrl) {
       const params = new URLSearchParams(ranks.length ? { sequence: ranks.join('-') } : { value: value.value })
-      window.history.pushState(null, '', `/checker?${params}`)
+      window.history.pushState(null, '', `/?${params}`)
     }
     running.value = true
     timeout = setTimeout(() => {
@@ -147,6 +147,12 @@ onUnmounted(() => {
       </details>
       <p v-if="catalogEntries.some(entry => entry.value === value)"><a :href="`/numbers/${value}`">この数のカード表現を見る</a></p>
       <p v-else class="help">現在のカタログには未収録です。ジョーカーなし・1〜3枚で作れる素数のみ収録しています。</p>
+      <p v-if="!value.startsWith('-')"><a :href="`/numbers?exact=${value}`">この数をカタログで検索する</a></p>
+    </section>
+    <section aria-labelledby="search-heading">
+      <h2 id="search-heading">素数を検索する</h2>
+      <p>ジョーカーなし・1〜3枚で作れる337件の素数を、数の範囲・カード枚数・桁数で探せます。</p>
+      <a href="/numbers">数の一覧・検索へ</a>
     </section>
   </main>
 </template>

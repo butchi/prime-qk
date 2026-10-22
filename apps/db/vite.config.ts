@@ -5,7 +5,7 @@ import { canonicalPath } from './src/urls'
 import { catalogEntries } from '../../packages/catalog/src/index'
 import type { Connect } from 'vite'
 
-const paths = new Set(['/numbers', '/checker', ...catalogEntries.map(entry => `/numbers/${entry.value}`)])
+const paths = new Set(['/', '/numbers', ...catalogEntries.map(entry => `/numbers/${entry.value}`)])
 function routes(preview: boolean): Connect.NextHandleFunction {
   return (request, response, next) => {
     const url = new URL(request.url ?? '/', 'http://localhost')
@@ -13,7 +13,7 @@ function routes(preview: boolean): Connect.NextHandleFunction {
         url.pathname.startsWith('/src/') || url.pathname.startsWith('/node_modules/')) return next()
     const path = canonicalPath(url.pathname)
     if (path !== url.pathname) {
-      response.writeHead(url.pathname === '/' ? 302 : 301, { Location: path + url.search })
+      response.writeHead(301, { Location: path + url.search })
       return response.end()
     }
     if (!paths.has(path) && preview) {

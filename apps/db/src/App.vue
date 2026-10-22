@@ -37,11 +37,11 @@ onMounted(() => {
 </script>
 
 <template>
-  <Checker v-if="path === '/checker'" />
+  <Checker v-if="path === '/'" />
   <NumberList v-else-if="path === '/numbers'" :url="url.href" />
   <main v-else-if="entry">
     <a href="/numbers">一覧・検索に戻る</a>
-    <p><a :href="`/checker?value=${entry.value}`">この数を判定する</a></p>
+    <p><a :href="`/?value=${entry.value}`">この数を判定する</a></p>
     <header>
       <p class="eyebrow">素数大富豪の数カタログ</p>
       <h1>{{ entry.value }}</h1>
@@ -69,5 +69,6 @@ onMounted(() => {
     <p>未収録の数、または存在しないページです。未収録であることは、合成数であることを意味しません。</p>
     <p>現在はジョーカーなし・1〜3枚で作れる337件の素数を収録しています。</p>
     <a href="/numbers">数の一覧・検索へ</a>
+    <p><a href="/">トップで素数判定する</a></p>
   </main>
 </template>
