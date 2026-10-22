@@ -52,5 +52,5 @@ export function searchCatalog(
 
 export function formatCards(ranks: readonly number[]): string {
   const labels: Record<number, string> = { 1: 'A', 10: 'T', 11: 'J', 12: 'Q', 13: 'K' }
-  return ranks.map(rank => labels[rank] ?? String(rank)).join(' ')
+  return ranks.map(rank => labels[rank] ?? String(rank)).join('')
 }

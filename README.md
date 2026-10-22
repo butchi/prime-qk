@@ -89,7 +89,7 @@ The search supports exact value, inclusive minimum/maximum, card count, digit
 count, and numeric ascending/descending order. Conditions are combined with AND.
 An entry matches a card-count condition if at least one representation matches;
 only matching representations are shown in its expandable details.
-For example, 113 has `A A 3`, `A K`, and `J 3`; a two-card filter shows the latter
+For example, 113 has `AA3`, `AK`, and `J3`; a two-card filter shows the latter
 two. Digit count describes the decimal number, not the number of card tokens.
 Results are paginated at 50 numbers per page using a lightweight text UI.
 
@@ -164,17 +164,23 @@ no jokers, 1–3 cards, 337 distinct primes. It does not reproduce a third-party
 Values appear once per card-count/digit-count group, in numeric ascending order.
 A value that has representations using different card counts appears in each applicable group,
 so adding card-count totals does not give the distinct-value total.
-Number links lead to the existing detail pages. The search page links to this full list;
+Numbers and all card representations for that card count are shown together
+(e.g. `113 (AK / J3)` for two cards). Card links highlight the matching representation
+on the detail page. The search page links to this full list;
 the minimal homepage remains unchanged.
 
 Both exports are generated at build time and are also available in the Vite dev server.
-JSON has `schemaVersion: 1`, `scope: { jokers: false, minCards: 1, maxCards: 3 }`,
+JSON has `schemaVersion: 2`, `scope: { jokers: false, minCards: 1, maxCards: 3 }`,
 `total` (the distinct-value count), and `groups`.
 Each group has `cardCount`, `count`, and `digits`; each digit group has `digitCount`
-and `values` (decimal strings to avoid precision loss). TXT is UTF-8 with `#`
-scope/count headings and one decimal value per line; blank lines separate groups.
+and `entries`. Each entry has `value` (a decimal string) and `representations`,
+each with numeric `ranks` and formatted `cards` (e.g. `"QK"`).
+Card notation uses one character per rank, without spaces, throughout the UI and exports.
+Version 2 replaces version 1's `values` array with these entries.
+TXT is UTF-8 with `#` scope/count headings; each data line is a decimal value,
+a tab, and card representations separated by ` | `. Blank lines separate groups.
 Ignore blank lines and `#` lines when reading TXT programmatically, and deduplicate
-values if a flat list of distinct primes is needed.
+values from the first tab-separated column if a flat list of distinct primes is needed.
 View/save links on the grouped page provide both formats.
 
 ### Primality checker

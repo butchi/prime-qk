@@ -44,7 +44,8 @@ describe('1〜3枚の素数カタログ', () => {
     const result = searchCatalog(catalogEntries, { exactValue: '00113' })
     assert.equal(result.length, 1)
     assert.deepEqual(result[0]?.representations, [[1, 1, 3], [1, 13], [11, 3]])
-    assert.equal(formatCards([1, 10, 11, 12, 13]), 'A T J Q K')
+    assert.equal(formatCards([1, 10, 11, 12, 13]), 'ATJQK')
+    assert.equal(formatCards([13, 13, 11]), 'KKJ')
   })
 
   it('枚数と桁数を同時に満たす表現のみ返す', () => {
