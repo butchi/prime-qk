@@ -1,10 +1,19 @@
+import { parseInput } from './primality'
+
+export function parseCheckerInput(input: string, format?: 'integer' | 'cards') {
+  const isCards = format === 'cards' ||
+    (format === undefined && (/[a-z]/i.test(input) || /^\d+-/.test(input.trim())))
+  const ranks = isCards ? parseCards(input) : []
+  return { ranks, value: parseInput(isCards ? ranks.join('') : input) }
+}
+
 export function parseCards(input: string): number[] {
   const text = input.trim().toUpperCase()
   const labels: Record<string, number> = { A: 1, T: 10, J: 11, Q: 12, K: 13 }
   let ranks: number[]
   if (/^\d+(?:-\d+)*$/.test(text)) {
     if (!text.includes('-') && !/^(?:[1-9]|1[0-3])$/.test(text)) {
-      throw new Error('数字のカード列は 12-13 のようにハイフンで区切ってください。整数の判定は整数モードを使用してください。')
+      throw new Error('数字のカード列は 12-13 のようにハイフンで区切ってください。整数の判定は数字だけを入力してください。')
     }
     const tokens = text.split('-')
     if (tokens.some(token => !/^(?:[1-9]|1[0-3])$/.test(token))) {

@@ -1,6 +1,23 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { parseCards } from '../src/card-input.ts'
+import { parseCards, parseCheckerInput } from '../src/card-input.ts'
+
+test('整数とカード列を自動判別し、共有URLの明示形式も維持する', () => {
+  for (const input of ['1213', '13', '23', '0013', '+13', ' -13 ', '0']) {
+    assert.deepEqual(parseCheckerInput(input), { ranks: [], value: BigInt(input.trim()) })
+  }
+  for (const input of ['QK', ' qk ', '12-13']) {
+    assert.deepEqual(parseCheckerInput(input), { ranks: [12, 13], value: 1213n })
+  }
+  assert.deepEqual(parseCheckerInput('A23'), { ranks: [1, 2, 3], value: 123n })
+  assert.deepEqual(parseCheckerInput('1-3'), { ranks: [1, 3], value: 13n })
+  assert.deepEqual(parseCheckerInput('13', 'cards'), { ranks: [13], value: 13n })
+  for (const input of ['', '12K', 'Q K', '12--13', '1.5', '1e3', 'AAAAA', '9'.repeat(201)]) {
+    assert.throws(() => parseCheckerInput(input), input)
+  }
+  assert.throws(() => parseCheckerInput('1213', 'cards'))
+  assert.throws(() => parseCheckerInput('QK', 'integer'))
+})
 
 test('カード文字とランク列を同じ順序付き配列に変換する', () => {
   assert.deepEqual(parseCards(' qk '), [12, 13])

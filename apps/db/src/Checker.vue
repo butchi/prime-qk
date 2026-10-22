@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { catalogEntries, formatCards } from '@prime-qk/catalog'
-import { parseInput } from './primality'
-import { parseCards } from './card-input'
+import { parseCheckerInput } from './card-input'
 import type { PrimalityResult } from './primality'
 
 const input = ref('')
-const mode = ref('integer')
 const cards = ref<number[]>([])
 const value = ref('')
 const result = ref<PrimalityResult | null>(null)
@@ -22,14 +20,13 @@ function stop() {
   running.value = false
 }
 
-function check(updateUrl = true) {
+function check(updateUrl = true, format?: 'integer' | 'cards') {
   stop()
   error.value = ''
   result.value = null
   cards.value = []
   try {
-    const ranks = mode.value === 'cards' ? parseCards(input.value) : []
-    const parsed = parseInput(ranks.length ? ranks.join('') : input.value)
+    const { ranks, value: parsed } = parseCheckerInput(input.value, format)
     cards.value = ranks
     value.value = String(parsed)
     if (updateUrl) {
@@ -77,9 +74,8 @@ function restore() {
     error.value = 'URLの判定条件が不正です。value または sequence を1つだけ指定してください。'
     return
   }
-  mode.value = params.has('sequence') ? 'cards' : 'integer'
   input.value = params.get('sequence') ?? params.get('value') ?? ''
-  if (params.has('value') || params.has('sequence')) check(false)
+  if (params.has('value') || params.has('sequence')) check(false, params.has('sequence') ? 'cards' : 'integer')
 }
 
 function cancel() {
@@ -98,35 +94,32 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <main>
-    <a href="/numbers">数の一覧・検索へ</a>
+  <main class="checker">
     <header>
-      <p class="eyebrow">QKサーチ — 素数大富豪の数を検索・判定</p>
-      <h1>素数判定</h1>
-      <p>十進整数またはカード列から、素数か合成数かを調べます。手札や場に対する合法手は判定しません。</p>
+      <h1>QKサーチ</h1>
+      <p class="tagline">素数大富豪の数を検索・判定</p>
     </header>
-    <section aria-labelledby="input-heading">
-      <h2 id="input-heading">数を入力</h2>
+    <div class="checker-input">
       <form @submit.prevent="check()">
-        <label>入力形式
-          <select v-model="mode" @change="stop(); result = null; error = ''">
-            <option value="integer">整数</option>
-            <option value="cards">カード列</option>
-          </select>
+        <label>
+          <span class="visually-hidden">判定する数・カード列</span>
+          <input v-model="input" type="text" placeholder="数・カード列を入力（例：1213、QK）" aria-describedby="input-help" />
         </label>
-        <label>判定する数・カード列
-          <input v-model="input" type="text" :placeholder="mode === 'cards' ? '例：QK または 12-13' : '例：1213'" aria-describedby="input-help" />
-        </label>
-        <p v-if="mode === 'integer'" id="input-help" class="help">半角数字で最大200桁（先頭ゼロを含む、符号・前後の空白は除く）。小数・指数表記は使用できません。</p>
-        <p v-else id="input-help" class="help">QK・A23 または 12-13・1-2-3。A=1、T=10、J=11、Q=12、K=13（小文字も可）。数字のみの複数枚はハイフンで区切ります。ジョーカーなし・各ランク4枚まで、最大52枚。スート・空白区切りは対象外です。</p>
         <div class="actions">
           <button type="submit">判定する</button>
           <button v-if="running" type="button" class="secondary" @click="cancel">中止</button>
         </div>
+        <nav aria-label="検索"><a href="/numbers">数の一覧・検索へ</a></nav>
+        <details class="help">
+          <summary>使い方</summary>
+          <p id="input-help">数字だけなら整数、QK・A23・12-13などはカード列として判定します。手札や場に対する合法手は判定しません。</p>
+          <p>整数は半角数字で最大200桁（先頭ゼロを含む、符号・前後の空白は除く）。先頭の +・- は使用できます。小数・指数表記は使用できません。1213や13はカードに分割しません。</p>
+          <p>カード列はQK・A23 または 12-13・1-2-3。A=1、T=10、J=11、Q=12、K=13（小文字も可）。数字のみの複数枚はハイフンで区切ります。ジョーカーなし・各ランク4枚まで、最大52枚。スート・空白区切りは対象外です。</p>
+        </details>
       </form>
       <p v-if="running" role="status">計算中です（最大5秒）…</p>
       <p v-if="error" role="alert" class="error">{{ error }}</p>
-    </section>
+    </div>
     <section v-if="result" aria-labelledby="result-heading" aria-live="polite">
       <h2 id="result-heading">判定結果</h2>
       <p class="checked-number">{{ value }}</p>
@@ -149,10 +142,76 @@ onUnmounted(() => {
       <p v-else class="help">現在のカタログには未収録です。ジョーカーなし・1〜3枚で作れる素数のみ収録しています。</p>
       <p v-if="!value.startsWith('-')"><a :href="`/numbers?exact=${value}`">この数をカタログで検索する</a></p>
     </section>
-    <section aria-labelledby="search-heading">
-      <h2 id="search-heading">素数を検索する</h2>
-      <p>ジョーカーなし・1〜3枚で作れる337件の素数を、数の範囲・カード枚数・桁数で探せます。</p>
-      <a href="/numbers">数の一覧・検索へ</a>
-    </section>
   </main>
 </template>
+
+<style scoped>
+:global(body:has(.checker)) {
+  background: #fff;
+}
+
+.checker {
+  max-width: 680px;
+  min-height: 100svh;
+  padding-top: clamp(48px, 16vh, 160px);
+}
+
+header {
+  text-align: center;
+  margin: 0 0 32px;
+}
+
+h1 {
+  color: #0f766e;
+  margin-bottom: 4px;
+}
+
+.tagline {
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+input {
+  border-color: #cbd5e1;
+  border-radius: 28px;
+  padding: 12px 20px;
+  font-weight: 400;
+}
+
+.actions {
+  justify-content: center;
+  margin: 24px 0 16px;
+}
+
+nav,
+summary {
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.checker-input .help {
+  margin-top: 24px;
+}
+
+.checker-input .help p {
+  margin-top: 16px;
+}
+
+section {
+  border: 0;
+  border-top: 1px solid #e2e8f0;
+  border-radius: 0;
+  padding: 24px 0;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+</style>

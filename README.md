@@ -157,11 +157,14 @@ npm run test --workspace=@prime-qk/db
 
 ### Primality checker
 
-The checker switches between decimal integers (up to 200 digits, excluding sign
-and surrounding whitespace but including leading zeros) and card sequences.
+The checker automatically detects the input format without a mode selector.
+Digits alone (including `13` and `1213`, with an optional sign) are decimal integers
+(up to 200 digits, excluding sign and surrounding whitespace but including leading zeros);
+they are never automatically split into cards.
 Card input accepts `QK`/`A23` using `A23456789TJQK` (case-insensitive), or
-hyphen-separated ranks such as `12-13`/`1-2-3`. A single numeric rank is also valid.
-Ambiguous multi-card digits, mixed forms such as `12K`, suits, jokers, leading
+hyphen-separated ranks such as `12-13`/`1-2-3`. Existing `sequence` URLs still explicitly
+parse cards, including a single numeric rank; `value` URLs explicitly parse integers.
+Mixed forms such as `12K`, suits, jokers, leading
 zeros in ranks, and space-separated cards are rejected. Each rank is limited to
 four copies and the deck to 52 cards. This is not a game-state legality checker.
 
