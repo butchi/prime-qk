@@ -194,6 +194,23 @@ card-count/digit-count headings. Classification order and numeric order are reta
 duplicates across card counts remain. Empty selections show feedback and disable saving.
 The complete on-page list and fixed export URLs are unchanged.
 
+### Card permutation search
+
+After checking a card sequence, a separate Web Worker searches permutations using
+every input card with the original multiplicities, including four or more cards.
+Integer-only input is never split into cards. Results show numbers and card notation
+in descending numeric order, grouping sequences that produce the same number.
+Links check the corresponding sequence.
+
+Search is limited to five seconds and 100 displayed distinct values; finding a
+101st value also stops the search. Partial results are retained, but timeout,
+limit, cancellation, and errors explicitly mean incomplete search, not proof of
+the maximum or absence of primes. Only a complete search without probable-prime
+candidates may claim the largest prime. Candidates retain the same 2^64 certainty
+boundary as the checker and are explicitly unproven, never confirmed upgrades.
+Search can be cancelled/retried and is terminated on new input or navigation.
+This search is independent of catalog coverage.
+
 ### Hiding dominated representations
 
 Search and the grouped list offer an opt-in filter that retains only representations

@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { catalogEntries, formatCards } from '@prime-qk/catalog'
 import { parseCheckerInput } from './card-input'
 import type { PrimalityResult } from './primality'
+import PermutationResults from './PermutationResults.vue'
 
 const input = ref('')
 const cards = ref<number[]>([])
@@ -141,6 +142,7 @@ onUnmounted(() => {
       <p v-if="catalogEntries.some(entry => entry.value === value)"><a :href="`/numbers/${value}`">この数のカード表現を見る</a></p>
       <p v-else class="help">現在のカタログには未収録です。ジョーカーなし・1〜3枚で作れる素数のみ収録しています。</p>
       <p v-if="!value.startsWith('-')"><a :href="`/numbers?exact=${value}`">この数をカタログで検索する</a></p>
+      <PermutationResults v-if="cards.length" :key="cards.join('-')" :ranks="cards" :value="value" />
     </section>
   </main>
 </template>
