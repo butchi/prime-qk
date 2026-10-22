@@ -132,6 +132,8 @@ Existing game logic has not been moved to `packages/core`.
   The legacy `/checker` redirects to `/`, preserving query parameters.
 - `/numbers` lists entries; query keys are `exact`, `min`, `max`, `cards`,
   `digits`, `sort`, and `page`. Defaults and empty filters are omitted.
+- `/numbers/list` shows the complete catalog grouped by card count and digit count.
+  `/numbers/list.json` and `/numbers/list.txt` provide the same grouped list as static files.
 - `/numbers/1213` identifies the integer; `#cards-12-13` highlights Q K.
 - `/?value=1213` checks an integer; `/?sequence=12-13` checks Q K.
 - `/sequences/12-13` is reserved for future sequence-specific pages.
@@ -139,7 +141,7 @@ Existing game logic has not been moved to `packages/core`.
   Invalid, duplicate, or unknown conditions and out-of-range pages show errors.
 - Unlisted numbers return a 404 explaining the catalog scope, not a composite verdict.
 
-The DB build prerenders the list, checker, all 337 detail pages, and a top-level `404.html`
+The DB build prerenders the search, grouped list, checker, all 337 detail pages, and a top-level `404.html`
 using Vue's server renderer at build time only. No runtime SSR or Workers are needed.
 Detail files such as `numbers/113.html` use Cloudflare Pages' extensionless URLs.
 Generated `_redirects` handles the legacy checker URL, trailing slashes, and leading zeros
@@ -154,6 +156,26 @@ DNS setup instructions; repository changes alone do not configure DNS or deploy.
 ```sh
 npm run test --workspace=@prime-qk/db
 ```
+
+### Complete lists and exports
+
+The grouped list uses the independently generated, trial-division-verified catalog:
+no jokers, 1–3 cards, 337 distinct primes. It does not reproduce a third-party list.
+Values appear once per card-count/digit-count group, in numeric ascending order.
+A value that has representations using different card counts appears in each applicable group,
+so adding card-count totals does not give the distinct-value total.
+Number links lead to the existing detail pages. The search page links to this full list;
+the minimal homepage remains unchanged.
+
+Both exports are generated at build time and are also available in the Vite dev server.
+JSON has `schemaVersion: 1`, `scope: { jokers: false, minCards: 1, maxCards: 3 }`,
+`total` (the distinct-value count), and `groups`.
+Each group has `cardCount`, `count`, and `digits`; each digit group has `digitCount`
+and `values` (decimal strings to avoid precision loss). TXT is UTF-8 with `#`
+scope/count headings and one decimal value per line; blank lines separate groups.
+Ignore blank lines and `#` lines when reading TXT programmatically, and deduplicate
+values if a flat list of distinct primes is needed.
+View/save links on the grouped page provide both formats.
 
 ### Primality checker
 

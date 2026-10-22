@@ -70,6 +70,7 @@ function reset() {
       <p>素数大富豪の数を検索・判定</p>
       <p>トランプ52枚から、ジョーカーなし・1〜3枚で作れる素数を探せます。</p>
       <p><a href="/">トップで任意の数を素数判定する</a></p>
+      <p><a href="/numbers/list">枚数・桁数別の全一覧・JSON・TXT</a></p>
     </header>
 
     <section aria-labelledby="search-heading">

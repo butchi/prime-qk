@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs'
 import { catalogEntries } from '../../../packages/catalog/src/index.ts'
+import { createCatalogList, catalogListText } from '../src/catalog-list.ts'
 
 const directory = new URL('../dist/', import.meta.url)
 const template = readFileSync(new URL('index.html', directory), 'utf8')
@@ -40,6 +41,10 @@ async function write(path: string, title: string, description: string, file: str
 
 mkdirSync(new URL('numbers/', directory), { recursive: true })
 await write('/numbers', 'QKサーチ — 素数大富豪の数を検索・判定', 'カード枚数・桁数・数の範囲で素数を検索。最大200桁の整数の素数判定にも対応しています。', 'numbers.html')
+await write('/numbers/list', '枚数・桁数別の素数一覧 | QKサーチ', 'ジョーカーなし・1〜3枚で作れる素数を枚数・桁数別に全件掲載。JSON・TXTでも取得できます。', 'numbers/list.html')
+const list = createCatalogList()
+writeFileSync(new URL('numbers/list.json', directory), JSON.stringify(list, null, 2) + '\n')
+writeFileSync(new URL('numbers/list.txt', directory), catalogListText(list))
 await write('/', 'QKサーチ — 素数大富豪の数を検索・判定', '最大200桁の十進整数やQK・12-13などのカード列を素数判定。大きい数の検査通過は素数候補として表示します。', 'index.html')
 for (const entry of catalogEntries) {
   await write(`/numbers/${entry.value}`, `${entry.value} のカード表現 | QKサーチ`,
@@ -49,4 +54,4 @@ for (const entry of catalogEntries) {
 await write('/404', 'ページが見つかりません | QKサーチ', '未収録の数または存在しないページです。', '404.html')
 writeFileSync(new URL('_redirects', directory), redirects.join('\n') + '\n')
 rmSync(new URL('../dist-ssr/', import.meta.url), { recursive: true })
-console.log(`${catalogEntries.length}件の詳細HTML・トップ・一覧・404を生成しました。`)
+console.log(`${catalogEntries.length}件の詳細HTML・トップ・検索・枚数別一覧・JSON・TXT・404を生成しました。`)

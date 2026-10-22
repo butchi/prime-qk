@@ -3,12 +3,19 @@ import vue from '@vitejs/plugin-vue'
 import { readFileSync } from 'node:fs'
 import { canonicalPath } from './src/urls'
 import { catalogEntries } from '../../packages/catalog/src/index'
+import { createCatalogList, catalogListText } from './src/catalog-list'
 import type { Connect } from 'vite'
 
-const paths = new Set(['/', '/numbers', ...catalogEntries.map(entry => `/numbers/${entry.value}`)])
+const paths = new Set(['/', '/numbers', '/numbers/list', ...catalogEntries.map(entry => `/numbers/${entry.value}`)])
 function routes(preview: boolean): Connect.NextHandleFunction {
   return (request, response, next) => {
     const url = new URL(request.url ?? '/', 'http://localhost')
+    if (!preview && ['/numbers/list.json', '/numbers/list.txt'].includes(url.pathname)) {
+      const list = createCatalogList()
+      const json = url.pathname.endsWith('.json')
+      response.writeHead(200, { 'Content-Type': `${json ? 'application/json' : 'text/plain'}; charset=utf-8` })
+      return response.end(json ? JSON.stringify(list, null, 2) + '\n' : catalogListText(list))
+    }
     if (/\.[a-z0-9]+$/i.test(url.pathname) || url.pathname.startsWith('/@') ||
         url.pathname.startsWith('/src/') || url.pathname.startsWith('/node_modules/')) return next()
     const path = canonicalPath(url.pathname)

@@ -135,6 +135,8 @@ DB の出力先は `apps/db/dist/` です。
 | --- | --- |
 | トップ・素数判定 | `/` |
 | 一覧・検索 | `/numbers` |
+| 枚数・桁数別の全件一覧 | `/numbers/list` |
+| 一覧のJSON・TXT | `/numbers/list.json`・`/numbers/list.txt` |
 | 条件付き検索 | `/numbers?cards=2&digits=4&sort=desc&page=2` |
 | 数の詳細 | `/numbers/1213` |
 | 特定のカード表現 | `/numbers/1213#cards-12-13` |
@@ -155,7 +157,7 @@ DB の出力先は `apps/db/dist/` です。
 未収録の数は404ページで収録範囲と検索へのリンクを表示し、合成数とは断定しません。
 
 DB のビルド時に Vue のサーバーレンダラーをビルド工程内で使用し、
-一覧・判定ツール・337件の数の詳細・404をHTMLとして静的生成します。
+検索・枚数別一覧・判定ツール・337件の数の詳細・404をHTMLとして静的生成します。
 リクエスト時のSSRやWorkersは不要です。詳細は `numbers/113.html` のように出力し、
 Cloudflare Pagesの拡張子なしURLにより `/numbers/113` として配信します。
 `_redirects` で旧判定URL・末尾スラッシュ・先頭ゼロを転送します。
@@ -174,6 +176,27 @@ npm run test --workspace=@prime-qk/db
 npm run build --workspace=@prime-qk/db
 npm run preview --workspace=@prime-qk/db
 ```
+
+### 全件一覧とデータ出力
+
+`/numbers/list` は、独自生成して試し割りで検証したジョーカーなし・1〜3枚の
+337個の素数を、枚数→桁数の順に全件表示します。外部の一覧は転載していません。
+同じ分類内は重複なし・数値昇順です。同じ数に異なる枚数の表現があれば各枚数に掲載するため、
+枚数別の件数の合計と異なる数の総数は一致しません。
+数のリンクから既存の詳細ページへ進めます。検索ページから全件一覧へ案内し、
+シンプルなトップページには項目を増やしません。
+
+一覧ページからJSON・TXTを表示・保存できます。両方ともビルド時に静的出力し、
+Viteの開発サーバーでも利用できます。
+
+- JSON: `schemaVersion: 1`、`scope: { jokers: false, minCards: 1, maxCards: 3 }`、
+  `total`（異なる数の総数）、`groups`。
+  各グループは `cardCount`・`count`・`digits`、
+  各桁数グループは `digitCount`・`values`。
+  数値は精度を失わない十進整数文字列です。
+- TXT: UTF-8。`#` で始まる条件・件数の見出しと、1行1個の十進整数。
+  分類間は空行です。プログラムで読む場合は空行と `#` 行を除外し、
+  異なる数だけのフラットな一覧が必要なら重複を除いてください。
 
 ### 素数判定
 
