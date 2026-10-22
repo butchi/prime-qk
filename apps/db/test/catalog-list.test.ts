@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { catalogEntries, formatCards, searchCatalog } from '@prime-qk/catalog'
+import { catalogEntries, formatCards, searchCatalog, catalogCardCounts, catalogDigitCounts } from '@prime-qk/catalog'
 import { createCatalogList, catalogListText, customCatalogText } from '../src/catalog-list.ts'
 
 test('枚数・桁数別一覧は全表現を分類し、各分類内で数を重複させない', () => {
   const list = createCatalogList()
   assert.equal(list.schemaVersion, 2)
-  assert.deepEqual(list.scope, { jokers: false, minCards: 1, maxCards: 3 })
-  assert.equal(list.total, 337)
-  assert.deepEqual(list.groups.map(group => group.cardCount), [1, 2, 3])
+  assert.deepEqual(list.scope, { jokers: false, minCards: 1, maxCards: 6, completeThroughCards: 4, extendedRanks: [10, 11, 12, 13] })
+  assert.equal(list.total, 3302)
+  assert.deepEqual(list.groups.map(group => group.cardCount), [1, 2, 3, 4, 5, 6])
   const unique = new Set<string>()
   for (const group of list.groups) {
     const expected = catalogEntries.filter(entry => entry.representations.some(ranks => ranks.length === group.cardCount))
@@ -45,8 +45,8 @@ test('枚数・桁数別一覧は全表現を分類し、各分類内で数を�
 })
 
 test('カスタム出力の条件は枚数・桁数・全カード表現に適用され、総数を再計算する', () => {
-  for (const cardCount of [undefined, 1, 2, 3]) {
-    for (const digitCount of [undefined, 1, 2, 3, 4, 5, 6]) {
+  for (const cardCount of [undefined, ...catalogCardCounts]) {
+    for (const digitCount of [undefined, ...catalogDigitCounts]) {
       const list = createCatalogList({ cardCount, digitCount })
       const expected = catalogEntries.filter(entry =>
         (digitCount === undefined || entry.value.length === digitCount) &&
@@ -65,8 +65,12 @@ test('カスタム出力の条件は枚数・桁数・全カード表現に適�
     }
   }
   assert.deepEqual(createCatalogList({ cardCount: 1, digitCount: 6 }).groups, [])
-  assert.throws(() => createCatalogList({ cardCount: 4 }))
+  assert.throws(() => createCatalogList({ cardCount: 7 }))
   assert.throws(() => createCatalogList({ digitCount: 0 }))
+  assert.throws(() => createCatalogList({ digitCount: 13 }))
+  const six = createCatalogList({ cardCount: 6, digitCount: 12 })
+  assert.equal(six.total, 189)
+  assert.ok(customCatalogText(six, { notation: 'both', separator: '\n', headings: true }).includes('131313131011 (KKKKTJ)'))
 })
 
 test('カスタムTXTの全表記・区切り・見出しの組み合わせを検証する', () => {
@@ -92,7 +96,7 @@ test('カスタムTXTの全表記・区切り・見出しの組み合わせを�
 
 test('下位互換フィルターは一覧・カスタム出力の表現と件数に共通で適用される', () => {
   const list = createCatalogList({ hideDominated: true })
-  assert.equal(list.total, 220)
+  assert.equal(list.total, 1154)
   for (const group of list.groups) {
     const actual = group.digits.flatMap(digits => digits.entries)
     const expected = searchCatalog(catalogEntries, { cardCount: group.cardCount, hideDominated: true })
@@ -115,7 +119,8 @@ test('JSONとUTF-8 TXTは同じ分類・件数・数値文字列を保持する'
   assert.deepEqual(JSON.parse(JSON.stringify(list)), list)
   const text = catalogListText(list)
   assert.ok(text.endsWith('\n'))
-  assert.ok(text.includes('ジョーカーなし・1〜3枚'))
+  assert.ok(text.includes('1〜4枚は全ランク'))
+  assert.ok(text.includes('5〜6枚はT・J・Q・Kのみ'))
   const expected = list.groups.flatMap(group => group.digits.flatMap(digits => digits.entries.map(entry =>
     `${entry.value}\t${entry.representations.map(item => item.cards).join(' | ')}`)))
   const actual = text.split('\n').filter(line => line && !line.startsWith('#'))

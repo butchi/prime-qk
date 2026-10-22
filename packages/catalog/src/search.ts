@@ -1,4 +1,5 @@
 import type { CatalogEntry, CatalogQuery } from './types'
+import { catalogScope } from './scope'
 
 function parseInteger(value: string): bigint {
   if (!/^\d+$/.test(value)) {
@@ -18,12 +19,12 @@ export function searchCatalog(
     throw new Error('最小値は最大値以下にしてください。')
   }
   if (query.cardCount !== undefined &&
-      (!Number.isInteger(query.cardCount) || query.cardCount < 1 || query.cardCount > 3)) {
-    throw new Error('カード枚数は1〜3枚で指定してください。')
+      (!Number.isInteger(query.cardCount) || query.cardCount < 1 || query.cardCount > catalogScope.maxCards)) {
+    throw new Error('カード枚数は1〜6枚で指定してください。')
   }
   if (query.digitCount !== undefined &&
-      (!Number.isInteger(query.digitCount) || query.digitCount < 1 || query.digitCount > 6)) {
-    throw new Error('桁数は1〜6桁で指定してください。')
+      (!Number.isInteger(query.digitCount) || query.digitCount < 1 || query.digitCount > 12)) {
+    throw new Error('桁数は1〜12桁で指定してください。')
   }
   if (query.sort !== undefined && query.sort !== 'asc' && query.sort !== 'desc') {
     throw new Error('並び順は昇順または降順で指定してください。')

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { catalogEntries, formatCards } from '@prime-qk/catalog'
+import { catalogEntries, formatCards, catalogScopeDescription } from '@prime-qk/catalog'
 import NumberList from './NumberList.vue'
 import Checker from './Checker.vue'
 import CatalogList from './CatalogList.vue'
@@ -51,7 +51,7 @@ onMounted(() => {
     </header>
     <section aria-labelledby="representations-heading">
       <h2 id="representations-heading">カード表現</h2>
-      <p>A=1、T=10、J=11、Q=12、K=13。ジョーカーなし・1〜3枚の表現を表示しています。</p>
+      <p>A=1、T=10、J=11、Q=12、K=13。{{ catalogScopeDescription }}の収録済み表現を表示しています。5〜6枚で他のランクを含む表現は網羅していません。</p>
       <p v-if="fragmentError" role="alert" class="error">{{ fragmentError }}</p>
       <ul class="representations">
         <li v-for="ranks in entry.representations" :id="`cards-${ranks.join('-')}`" :key="ranks.join('-')">
@@ -69,7 +69,7 @@ onMounted(() => {
   <main v-else>
     <h1>404 — ページが見つかりません</h1>
     <p>未収録の数、または存在しないページです。未収録であることは、合成数であることを意味しません。</p>
-    <p>現在はジョーカーなし・1〜3枚で作れる337件の素数を収録しています。</p>
+    <p>現在は{{ catalogScopeDescription }}の{{ catalogEntries.length }}件の素数を収録しています。5〜6枚は限定収録です。</p>
     <a href="/numbers">数の一覧・検索へ</a>
     <p><a href="/">トップで素数判定する</a></p>
   </main>

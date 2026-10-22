@@ -66,11 +66,12 @@ npm run preview --workspace=@prime-qk/db
 ```
 
 DB uses Vue 3, TypeScript, and Vite, and imports `@prime-qk/catalog` through
-npm workspaces. The initial catalog includes all primes formed by concatenating
-1–3 ranks from A–K, without jokers. Each rank has four physical cards, and suits
-are ignored. Because at most three cards are used, this inventory cannot be
-exceeded. The 337 distinct numbers and all their ordered card representations
-are generated independently, not copied from a third-party catalog.
+npm workspaces. The catalog covers every prime representation using 1–4 ranks
+from A–K, plus every 5–6-card representation using only T/J/Q/K.
+Jokers and suits are excluded, and each rank is limited to four copies.
+There are 3,302 distinct numbers, generated independently rather than copied
+from a third-party catalog. Five/six-card coverage is intentionally partial;
+missing values or representations do not imply that no prime can be formed.
 
 `packages/catalog/src/` defines the initial public types and exports.
 `packages/catalog/data/entries.ts` holds the generated dataset.
@@ -92,6 +93,7 @@ only matching representations are shown in its expandable details.
 For example, 113 has `AA3`, `AK`, and `J3`; a two-card filter shows the latter
 two. Digit count describes the decimal number, not the number of card tokens.
 Results are paginated at 50 numbers per page using a lightweight text UI.
+Search and export controls support up to 6 cards and 12 decimal digits.
 
 Regenerate and validate from the repository root:
 
@@ -100,15 +102,19 @@ npm run generate --workspace=@prime-qk/catalog
 npm run test --workspace=@prime-qk/catalog
 ```
 
-The generator enumerates all 2,379 ordered rank sequences (13 + 13² + 13³),
-performs trial division, groups by numeric value, and writes a stable dataset.
-Tests independently verify completeness using a sieve of Eratosthenes.
+The generator enumerates all ordered 1–4-card sequences from 13 ranks, plus
+5–6-card sequences from ranks 10–13 (at most four copies per rank), performs
+trial division by sieved primes, and writes a stable dataset grouped by value.
+All generated values are at most 12 digits and safely below Number.MAX_SAFE_INTEGER.
+Tests independently verify full 1–4-card coverage with a sieve and restricted
+5–6-card coverage with a separate odd-divisor trial-division implementation.
 Commit the generated data with generator changes; the app build does not run
 generation. Catalog integers are stored as strings, and searches use BigInt.
 
 Catalog exports TypeScript source for Vite to bundle; its build script performs
 type checking without generating artifacts. The DB output is `apps/db/dist/`.
 There is no dependency on a prebuilt catalog, so the DB build works independently.
+The generated catalog is bundled into a separate data chunk for caching independently of UI changes.
 Existing game logic has not been moved to `packages/core`.
 
 #### Implementation status and handoff
@@ -141,7 +147,7 @@ Existing game logic has not been moved to `packages/core`.
   Invalid, duplicate, or unknown conditions and out-of-range pages show errors.
 - Unlisted numbers return a 404 explaining the catalog scope, not a composite verdict.
 
-The DB build prerenders the search, grouped list, checker, all 337 detail pages, and a top-level `404.html`
+The DB build prerenders the search, grouped list, checker, all 3,302 detail pages, and a top-level `404.html`
 using Vue's server renderer at build time only. No runtime SSR or Workers are needed.
 Detail files such as `numbers/113.html` use Cloudflare Pages' extensionless URLs.
 Generated `_redirects` handles the legacy checker URL, trailing slashes, and leading zeros
@@ -160,7 +166,10 @@ npm run test --workspace=@prime-qk/db
 ### Complete lists and exports
 
 The grouped list uses the independently generated, trial-division-verified catalog:
-no jokers, 1–3 cards, 337 distinct primes. It does not reproduce a third-party list.
+no jokers, complete 1–4-card coverage, and T/J/Q/K-only 5–6-card coverage:
+3,302 distinct primes. It does not reproduce a third-party list.
+Card-count totals are 6, 38, 308, 2,865, 64, and 189 respectively.
+Five/six-card groups explicitly note that they do not cover other ranks.
 Values appear once per card-count/digit-count group, in numeric ascending order.
 A value that has representations using different card counts appears in each applicable group,
 so adding card-count totals does not give the distinct-value total.
@@ -170,7 +179,8 @@ on the detail page. The search page links to this full list;
 the minimal homepage remains unchanged.
 
 Both exports are generated at build time and are also available in the Vite dev server.
-JSON has `schemaVersion: 2`, `scope: { jokers: false, minCards: 1, maxCards: 3 }`,
+JSON has `schemaVersion: 2`,
+`scope: { jokers: false, minCards: 1, maxCards: 6, completeThroughCards: 4, extendedRanks: [10, 11, 12, 13] }`,
 `total` (the distinct-value count), and `groups`.
 Each group has `cardCount`, `count`, and `digits`; each digit group has `digitCount`
 and `entries`. Each entry has `value` (a decimal string) and `representations`,
@@ -185,7 +195,7 @@ View/save links on the grouped page provide both formats.
 
 The grouped page also offers client-side custom exports, with a preview and TXT/JSON
 save buttons. Custom exports and detailed catalog notes are collapsed by default
-to keep the start of the list in view. Card count (1–3) and digit count (1–6) filter both exports; totals are
+to keep the start of the list in view. Card count (1–6) and digit count (1–12) filter both exports; totals are
 recalculated for the selection. JSON keeps the same version 2 structure, including
 both numbers and representations; `scope` describes the source catalog's limits.
 TXT can contain numbers only, individual card representations only, or both

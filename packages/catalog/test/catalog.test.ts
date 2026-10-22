@@ -3,13 +3,13 @@ import { describe, it } from 'node:test'
 import { catalogEntries, formatCards, searchCatalog } from '../src/index.ts'
 import { generateCatalog } from '../src/generate.ts'
 
-describe('1〜3枚の素数カタログ', () => {
+describe('1〜6枚の段階的な素数カタログ', () => {
   it('保存済みデータが生成結果と一致する', () => {
     assert.deepEqual(catalogEntries, generateCatalog())
   })
 
-  it('全13ランクの1〜3枚の順列を独立した篩で検証する', () => {
-    const limit = 131313
+  it('全13ランクの1〜4枚と限定ランクの5〜6枚を独立照合する', () => {
+    const limit = 13131313
     const composite = new Uint8Array(limit + 1)
     composite[0] = composite[1] = 1
     for (let divisor = 2; divisor * divisor <= limit; divisor++) {
@@ -20,11 +20,25 @@ describe('1〜3枚の素数カタログ', () => {
     for (let a = 1; a <= 13; a++) {
       for (let b = 0; b <= 13; b++) {
         for (let c = 0; c <= 13; c++) {
-          if (b === 0 && c !== 0) continue
-          const ranks = [a, b, c].filter(rank => rank !== 0)
-          const value = ranks.join('')
-          if (!composite[Number(value)]) expected.add(`${value}:${ranks.join(',')}`)
+          for (let d = 0; d <= 13; d++) {
+            if ((b === 0 && (c !== 0 || d !== 0)) || (c === 0 && d !== 0)) continue
+            const ranks = [a, b, c, d].filter(rank => rank !== 0)
+            const value = ranks.join('')
+            if (!composite[Number(value)]) expected.add(`${value}:${ranks.join(',')}`)
+          }
         }
+      }
+    }
+    for (const count of [5, 6]) {
+      for (let code = 0; code < 4 ** count; code++) {
+        const ranks = Array.from({ length: count }, (_, index) => 10 + Math.floor(code / 4 ** index) % 4)
+        if ([10, 11, 12, 13].some(rank => ranks.filter(item => item === rank).length > 4)) continue
+        const value = Number(ranks.join(''))
+        let prime = value % 2 !== 0
+        for (let divisor = 3; prime && divisor * divisor <= value; divisor += 2) {
+          if (value % divisor === 0) prime = false
+        }
+        if (prime) expected.add(`${value}:${ranks.join(',')}`)
       }
     }
     const actual = new Set<string>()
@@ -33,6 +47,9 @@ describe('1〜3枚の素数カタログ', () => {
       assert.equal(entry.verification.certainty, 'deterministic')
       for (const ranks of entry.representations) {
         assert.equal(ranks.join(''), entry.value)
+        assert.ok(ranks.length <= 6)
+        assert.ok(ranks.every(rank => ranks.filter(item => item === rank).length <= 4))
+        if (ranks.length >= 5) assert.ok(ranks.every(rank => rank >= 10 && rank <= 13))
         actual.add(`${entry.value}:${ranks.join(',')}`)
       }
     }
@@ -71,18 +88,20 @@ describe('1〜3枚の素数カタログ', () => {
 
   it('下位互換の表現を除外し、他の絞り込み前の最大素数と比較する', () => {
     const result = searchCatalog(catalogEntries, { hideDominated: true })
-    assert.equal(result.length, 220)
+    assert.equal(result.length, 1154)
     assert.deepEqual(result.find(entry => entry.value === '13')?.representations, [[13]])
     assert.deepEqual(searchCatalog(catalogEntries, { exactValue: '13', cardCount: 2, hideDominated: true }), [])
     assert.deepEqual(searchCatalog(catalogEntries, { minValue: '13', maxValue: '13', cardCount: 2, hideDominated: true }), [])
     assert.ok(!result.some(entry => entry.value === '113'))
-    for (const entry of catalogEntries) {
-      const expected = entry.representations.filter(ranks => !catalogEntries.some(other =>
+    const small = catalogEntries.filter(entry => entry.representations.some(ranks => ranks.length <= 3))
+    const smallResult = searchCatalog(small, { hideDominated: true })
+    for (const entry of small) {
+      const expected = entry.representations.filter(ranks => !small.some(other =>
         BigInt(other.value) > BigInt(entry.value) && other.representations.some(candidate =>
           candidate.length === ranks.length &&
           Array.from({ length: 13 }, (_, index) => index + 1).every(rank =>
             candidate.filter(item => item === rank).length === ranks.filter(item => item === rank).length))))
-      assert.deepEqual(result.find(item => item.value === entry.value)?.representations ?? [], expected)
+      assert.deepEqual(smallResult.find(item => item.value === entry.value)?.representations ?? [], expected)
     }
     assert.deepEqual(searchCatalog([...catalogEntries].reverse(), { hideDominated: true }), result)
   })
@@ -92,7 +111,26 @@ describe('1〜3枚の素数カタログ', () => {
       assert.throws(() => searchCatalog(catalogEntries, { exactValue: value }))
     }
     assert.throws(() => searchCatalog(catalogEntries, { minValue: '13', maxValue: '7' }))
-    assert.throws(() => searchCatalog(catalogEntries, { cardCount: 4 }))
+    assert.throws(() => searchCatalog(catalogEntries, { cardCount: 7 }))
     assert.throws(() => searchCatalog(catalogEntries, { digitCount: 0 }))
+    assert.throws(() => searchCatalog(catalogEntries, { digitCount: 13 }))
+  })
+
+  it('4枚8桁・6枚12桁を検索でき、以前の範囲は維持される', () => {
+    assert.equal(searchCatalog(catalogEntries.filter(entry => entry.representations.some(ranks => ranks.length <= 3))).length, 337)
+    assert.deepEqual([1, 2, 3, 4, 5, 6].map(cardCount =>
+      searchCatalog(catalogEntries, { cardCount }).length), [6, 38, 308, 2865, 64, 189])
+    assert.ok(searchCatalog(catalogEntries, { cardCount: 4, digitCount: 8 }).length > 0)
+    assert.ok(searchCatalog(catalogEntries, { cardCount: 6, digitCount: 12 }).length > 0)
+    assert.deepEqual(searchCatalog(catalogEntries, { cardCount: 6, digitCount: 11 }), [])
+    const six = searchCatalog(catalogEntries, { cardCount: 6, hideDominated: true })
+    for (const entry of six) {
+      for (const ranks of entry.representations) {
+        const sorted = [...ranks].sort().join('-')
+        assert.ok(!searchCatalog(catalogEntries, { cardCount: 6 }).some(other =>
+          BigInt(other.value) > BigInt(entry.value) &&
+          other.representations.some(candidate => [...candidate].sort().join('-') === sorted)))
+      }
+    }
   })
 })

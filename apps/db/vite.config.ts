@@ -38,4 +38,13 @@ export default defineConfig({
     configurePreviewServer(server) { server.middlewares.use(routes(true)) },
   }],
   ssr: { noExternal: ['@prime-qk/catalog'] },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('/packages/catalog/data/entries.ts')) return 'catalog-data'
+        },
+      },
+    },
+  },
 })

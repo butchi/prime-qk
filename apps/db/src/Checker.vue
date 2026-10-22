@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { catalogEntries, formatCards } from '@prime-qk/catalog'
+import { catalogEntries, formatCards, catalogScopeDescription } from '@prime-qk/catalog'
 import { parseCheckerInput } from './card-input'
 import type { PrimalityResult } from './primality'
 import PermutationResults from './PermutationResults.vue'
@@ -140,7 +140,7 @@ onUnmounted(() => {
         <p v-else>小さい約数、またはMiller–Rabin検査の不合格により合成数と判定しました。素因数分解は行っていません。</p>
       </details>
       <p v-if="catalogEntries.some(entry => entry.value === value)"><a :href="`/numbers/${value}`">この数のカード表現を見る</a></p>
-      <p v-else class="help">現在のカタログには未収録です。ジョーカーなし・1〜3枚で作れる素数のみ収録しています。</p>
+      <p v-else class="help">現在のカタログには未収録です。{{ catalogScopeDescription }}の収録範囲です。5〜6枚は限定収録であり、未収録は素数の不存在を意味しません。</p>
       <p v-if="!value.startsWith('-')"><a :href="`/numbers?exact=${value}`">この数をカタログで検索する</a></p>
       <PermutationResults v-if="cards.length" :key="cards.join('-')" :ranks="cards" :value="value" />
     </section>

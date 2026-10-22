@@ -18,6 +18,10 @@ test('URLの正規化と検索条件の往復', () => {
   assert.equal(filtered.query.hideDominated, true)
   assert.equal(searchUrl(filtered.draft, 1), '/numbers?undominated=1')
   assert.equal(readSearch(new URLSearchParams()).query.hideDominated, false)
+  const six = readSearch(new URLSearchParams('cards=6&digits=12'))
+  assert.equal(six.query.cardCount, 6)
+  assert.equal(six.query.digitCount, 12)
+  assert.equal(searchUrl(six.draft, 1), '/numbers?cards=6&digits=12')
 })
 
 test('不正・重複・未知の検索条件は拒否する', () => {

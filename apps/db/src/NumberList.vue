@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref, onMounted, onUnmounted } from 'vue'
-import { catalogEntries, formatCards, searchCatalog } from '@prime-qk/catalog'
+import { catalogEntries, formatCards, searchCatalog, catalogScopeDescription, catalogCardCounts, catalogDigitCounts } from '@prime-qk/catalog'
 import { readSearch, searchUrl } from './urls'
 
 const props = defineProps<{ url: string }>()
@@ -68,7 +68,8 @@ function reset() {
       <p class="eyebrow">素数大富豪の数カタログ</p>
       <h1>QKサーチ</h1>
       <p>素数大富豪の数を検索・判定</p>
-      <p>トランプ52枚から、ジョーカーなし・1〜3枚で作れる素数を探せます。</p>
+      <p>{{ catalogScopeDescription }}の素数を探せます。</p>
+      <p class="help">5〜6枚は限定収録です。他のランクを含む表現は未収録で、検索結果なしは素数の不存在を意味しません。</p>
       <p><a href="/">トップで任意の数を素数判定する</a></p>
       <p><a href="/numbers/list">枚数・桁数別の全一覧・JSON・TXT</a></p>
     </header>
@@ -89,13 +90,13 @@ function reset() {
           <label>カード枚数
             <select v-model="draft.cardCount">
               <option value="">すべて</option>
-              <option v-for="count in 3" :key="count" :value="String(count)">{{ count }}枚</option>
+              <option v-for="count in catalogCardCounts" :key="count" :value="String(count)">{{ count }}枚</option>
             </select>
           </label>
           <label>桁数
             <select v-model="draft.digitCount">
               <option value="">すべて</option>
-              <option v-for="count in 6" :key="count" :value="String(count)">{{ count }}桁</option>
+              <option v-for="count in catalogDigitCounts" :key="count" :value="String(count)">{{ count }}桁</option>
             </select>
           </label>
           <label>並び順
@@ -124,7 +125,7 @@ function reset() {
       <p class="help">A=1、T=10、J=11、Q=12、K=13。スートは区別せず、並び順を保持します。</p>
       <div v-if="results.length === 0" class="empty-state">
         <h3>条件に合う数はありません</h3>
-        <p>ジョーカーなし・1〜3枚の素数のみ収録しています。条件を変更して検索してください。</p>
+        <p>{{ catalogScopeDescription }}の収録範囲です。5〜6枚は限定収録のため、結果なしは素数の不存在を意味しません。条件を変更して検索してください。</p>
       </div>
       <ul v-else class="entries">
         <li v-for="entry in visibleEntries" :key="entry.value">

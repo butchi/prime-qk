@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { createCatalogList, customCatalogText } from './catalog-list'
 import type { TextExportOptions } from './catalog-list'
+import { catalogEntries, catalogScopeDescription, catalogCardCounts, catalogDigitCounts } from '@prime-qk/catalog'
 
 const hideDominated = ref(false)
 const list = computed(() => createCatalogList({ hideDominated: hideDominated.value }))
@@ -59,18 +60,18 @@ function download(format: 'txt' | 'json') {
     <header>
       <p class="eyebrow">QKサーチ</p>
       <h1>枚数・桁数別の素数一覧</h1>
-      <p>ジョーカーなし・1〜3枚で作れる素数{{ list.total }}個。</p>
+      <p>収録{{ catalogEntries.length }}個 · 表示{{ list.total }}個。</p>
       <details class="help">
         <summary>一覧の見方・収録条件</summary>
         <p>各分類内は重複なし・数値の昇順です。同じ数を異なる枚数で作れる場合は、それぞれの枚数に掲載します。枚数別の件数の合計は、異なる数の総数とは一致しません。</p>
-        <p>独自に生成し、試し割りで素数と確認したデータです。ジョーカーあり・4枚以上は対象外です。</p>
+        <p>{{ catalogScopeDescription }}。独自に生成し、試し割りで確定判定しています。各ランク4枚までです。5〜6枚は全ランクを網羅せず、未収録は素数の不存在を意味しません。</p>
         <p>数と、その枚数で作れるすべてのカード表記を併記します。A=1、T=10、J=11、Q=12、K=13。カード表記を選ぶと詳細の該当表現へ進めます。</p>
         <p>「下位互換を非表示」は同じカード構成の並べ替えで作れる最大の素数の表現だけを残します。1つでも表現が残れば数を表示します。比較対象は絞り込み前の全収録素数です。固定JSON・TXTと詳細ページは全表現を保持します。</p>
       </details>
     </header>
     <label class="dominance-option"><input v-model="hideDominated" type="checkbox" />下位互換を非表示</label>
     <nav class="actions" aria-label="一覧の目次">
-      <a v-for="group in list.groups" :key="group.cardCount" :href="`#cards-${group.cardCount}`">{{ group.cardCount }}枚出し（{{ group.count }}個）</a>
+      <a v-for="group in list.groups" :key="group.cardCount" :href="`#cards-${group.cardCount}`">{{ group.cardCount }}枚（{{ group.count }}）</a>
     </nav>
     <details class="custom-export">
       <summary>データ出力（カスタム・全件）</summary>
@@ -85,13 +86,13 @@ function download(format: 'txt' | 'json') {
         <label>出力する枚数
           <select v-model="cardCount">
             <option value="">すべて</option>
-            <option v-for="count in [1, 2, 3]" :key="count" :value="count">{{ count }}枚</option>
+            <option v-for="count in catalogCardCounts" :key="count" :value="count">{{ count }}枚</option>
           </select>
         </label>
         <label>出力する桁数
           <select v-model="digitCount">
             <option value="">すべて</option>
-            <option v-for="count in [1, 2, 3, 4, 5, 6]" :key="count" :value="count">{{ count }}桁</option>
+            <option v-for="count in catalogDigitCounts" :key="count" :value="count">{{ count }}桁</option>
           </select>
         </label>
         <label>TXTの表記
@@ -130,6 +131,7 @@ function download(format: 'txt' | 'json') {
     </details>
     <section v-for="group in list.groups" :key="group.cardCount" :aria-labelledby="`cards-${group.cardCount}`">
       <h2 :id="`cards-${group.cardCount}`">{{ group.cardCount }}枚出し（{{ group.count }}個）</h2>
+      <p v-if="group.cardCount >= 5" class="help">T・J・Q・Kのみの限定収録です。他のランクを含む{{ group.cardCount }}枚の素数は未収録です。</p>
       <div v-for="digits in group.digits" :key="digits.digitCount">
         <h3 :id="`cards-${group.cardCount}-digits-${digits.digitCount}`">
           <a :href="`#cards-${group.cardCount}-digits-${digits.digitCount}`">{{ group.cardCount }}枚{{ digits.digitCount }}桁（{{ digits.entries.length }}個）</a>
