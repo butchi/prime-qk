@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { catalogEntries, formatCards } from '@prime-qk/catalog'
 import NumberList from './NumberList.vue'
+import Checker from './Checker.vue'
 import { canonicalPath } from './urls'
 
 const props = defineProps<{ url: string }>()
@@ -36,9 +37,11 @@ onMounted(() => {
 </script>
 
 <template>
-  <NumberList v-if="path === '/numbers'" :url="url.href" />
+  <Checker v-if="path === '/checker'" />
+  <NumberList v-else-if="path === '/numbers'" :url="url.href" />
   <main v-else-if="entry">
     <a href="/numbers">一覧・検索に戻る</a>
+    <p><a :href="`/checker?value=${entry.value}`">この数を判定する</a></p>
     <header>
       <p class="eyebrow">素数大富豪の数カタログ</p>
       <h1>{{ entry.value }}</h1>

@@ -66,8 +66,10 @@ function reset() {
   <main>
     <header>
       <p class="eyebrow">素数大富豪の数カタログ</p>
-      <h1>Prime QK DB</h1>
+      <h1>QKサーチ</h1>
+      <p>素数大富豪の数を検索・判定</p>
       <p>トランプ52枚から、ジョーカーなし・1〜3枚で作れる素数を探せます。</p>
+      <p><a href="/checker">任意の数を素数判定する</a></p>
     </header>
 
     <section aria-labelledby="search-heading">
@@ -150,7 +152,7 @@ function reset() {
       </nav>
     </section>
     <footer>
-      <p>収録範囲外の数が合成数とは限りません。素数判定ツール・手札検索・ジョーカー対応は今後検討します。</p>
+      <p>収録範囲外の数が合成数とは限りません。<a href="/checker">素数判定</a>で調べられます。手札検索・ジョーカー対応は今後検討します。</p>
     </footer>
   </main>
 </template>

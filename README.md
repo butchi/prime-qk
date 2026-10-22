@@ -56,6 +56,9 @@ import provenance. Shared logic remains inside each app for now.
 
 ### Number catalog site
 
+The service is named "QKサーチ — 素数大富豪の数を検索・判定".
+Catalog search and integer/card-sequence primality checking are available.
+
 ```sh
 npm run dev --workspace=@prime-qk/db -- --port 5175 --strictPort
 npm run build --workspace=@prime-qk/db
@@ -78,8 +81,8 @@ Every included prime has a deterministic trial-division verification record;
 probabilistic primality testing is not used in this bounded dataset.
 The list labels these simply as primes; verification details are available in
 the collapsed "判定情報" section rather than repeating certainty in each badge.
-When probabilistic results are introduced, label those separately as prime
-candidates instead of treating them as confirmed primes.
+Checker results beyond the deterministic range are labeled as prime candidates,
+not confirmed primes.
 Do not treat a number missing from this catalog as composite.
 
 The search supports exact value, inclusive minimum/maximum, card count, digit
@@ -115,9 +118,9 @@ Existing game logic has not been moved to `packages/core`.
 - [x] Add basic search, matching card representations, and paginated text UI.
 - [ ] Discuss the next increment before implementation: joker declarations,
   hand-based searches, composite numbers, equivalence/dominance relations,
-  priorities, card UI, or a standalone primality checker.
-- [ ] Introduce probabilistic results and their evidence only when expanding
-  beyond a verified deterministic range.
+  priorities, or card UI.
+- [x] Add integer/card-sequence checking with explicit prime-candidate results
+  beyond the verified deterministic range.
 - [ ] Evaluate larger datasets and computation costs before choosing Web Workers,
   server computation, caching, or SSR. The initial app remains static.
 
@@ -129,21 +132,47 @@ Existing game logic has not been moved to `packages/core`.
 - `/numbers` lists entries; query keys are `exact`, `min`, `max`, `cards`,
   `digits`, `sort`, and `page`. Defaults and empty filters are omitted.
 - `/numbers/1213` identifies the integer; `#cards-12-13` highlights Q K.
+- `/checker?value=1213` checks an integer; `/checker?sequence=12-13` checks Q K.
 - `/sequences/12-13` is reserved for future sequence-specific pages.
 - Searches and pagination update browser history and restore on reload/back/forward.
   Invalid, duplicate, or unknown conditions and out-of-range pages show errors.
 - Unlisted numbers return a 404 explaining the catalog scope, not a composite verdict.
 
-The DB build prerenders the list, all 337 detail pages, and a top-level `404.html`
+The DB build prerenders the list, checker, all 337 detail pages, and a top-level `404.html`
 using Vue's server renderer at build time only. No runtime SSR or Workers are needed.
 Detail files such as `numbers/113.html` use Cloudflare Pages' extensionless URLs.
 Generated `_redirects` handles the root, trailing slashes, and leading zeros
 (one leading zero per redirect). Local preview also normalizes URLs and serves 404s.
-Absolute canonical and OGP URLs await confirmation of the production domain.
+The production origin is `https://db.primeqk.butchi.jp`. Generated list and detail
+pages include absolute canonical and Open Graph URLs, titles, and descriptions.
+Search variants use `/numbers` as their canonical URL. The 404 page remains
+`noindex` without a canonical URL. An OGP image is not configured yet.
+Attach this custom domain to the DB project in Cloudflare Pages and follow its
+DNS setup instructions; repository changes alone do not configure DNS or deploy.
 
 ```sh
 npm run test --workspace=@prime-qk/db
 ```
+
+### Primality checker
+
+The checker switches between decimal integers (up to 200 digits, excluding sign
+and surrounding whitespace but including leading zeros) and card sequences.
+Card input accepts `QK`/`A23` using `A23456789TJQK` (case-insensitive), or
+hyphen-separated ranks such as `12-13`/`1-2-3`. A single numeric rank is also valid.
+Ambiguous multi-card digits, mixed forms such as `12K`, suits, jokers, leading
+zeros in ranks, and space-separated cards are rejected. Each rank is limited to
+four copies and the deck to 52 cards. This is not a game-state legality checker.
+
+Computation runs locally in a Web Worker with a five-second timeout and cancellation.
+Integers below 2 are neither prime nor composite. For n < 2^64, Miller–Rabin
+uses bases 2, 325, 9375, 28178, 450775, 9780504, and 1795265022 for deterministic
+classification after small-prime checks. Reference for the base set and bound:
+[Deterministic variants of the Miller-Rabin primality test](https://miller-rabin.appspot.com/).
+Above that range, passing fixed bases (the twelve primes from 2 through 37)
+means only "prime candidate"; no randomized error probability is claimed.
+Timeouts, cancellations, and errors never become primality verdicts.
+Factorization is not implemented. Inputs are not sent to a server.
 
 ### Workspace builds
 

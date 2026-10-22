@@ -5,7 +5,7 @@ import { canonicalPath } from './src/urls'
 import { catalogEntries } from '../../packages/catalog/src/index'
 import type { Connect } from 'vite'
 
-const paths = new Set(['/numbers', ...catalogEntries.map(entry => `/numbers/${entry.value}`)])
+const paths = new Set(['/numbers', '/checker', ...catalogEntries.map(entry => `/numbers/${entry.value}`)])
 function routes(preview: boolean): Connect.NextHandleFunction {
   return (request, response, next) => {
     const url = new URL(request.url ?? '/', 'http://localhost')

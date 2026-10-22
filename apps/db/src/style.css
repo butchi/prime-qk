@@ -190,3 +190,8 @@ summary strong {
 header {
   margin-top: 24px;
 }
+
+.checked-number {
+  overflow-wrap: anywhere;
+  font-family: monospace;
+}
