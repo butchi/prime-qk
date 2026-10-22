@@ -80,7 +80,7 @@ function reset() {
   <main>
     <header>
       <p class="eyebrow">素数大富豪の数カタログ</p>
-      <h1>QKサーチ</h1>
+      <h1><a class="site-title" href="/">QKサーチ</a></h1>
       <p>素数大富豪の数を検索・判定</p>
       <p>{{ catalogScopeDescription }}の素数を探せます。</p>
       <p class="help">5〜6枚は限定収録です。他のランクを含む表現は未収録で、検索結果なしは素数の不存在を意味しません。</p>

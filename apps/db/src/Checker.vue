@@ -97,7 +97,7 @@ onUnmounted(() => {
 <template>
   <main class="checker">
     <header>
-      <h1>QKサーチ</h1>
+      <h1><a class="site-title" href="/">QKサーチ</a></h1>
       <p class="tagline">素数大富豪の数を検索・判定</p>
     </header>
     <div class="checker-input">

@@ -58,7 +58,7 @@ function download(format: 'txt' | 'json') {
       <a href="/numbers">条件を指定して検索</a>
     </nav>
     <header>
-      <p class="eyebrow">QKサーチ</p>
+      <p class="eyebrow"><a class="site-title" href="/">QKサーチ</a></p>
       <h1>枚数・桁数別の素数一覧</h1>
       <p>収録{{ catalogEntries.length }}個 · 表示{{ list.total }}個。</p>
       <details class="help">
