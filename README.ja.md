@@ -189,6 +189,7 @@ Cloudflare Pagesの拡張子なしURLにより `/numbers/113` として配信し
 一覧と数の詳細HTMLには絶対URLのcanonicalとOGPのURL・タイトル・説明を出力します。
 検索条件付きの一覧もcanonicalは `/numbers` に統一します。
 404にはcanonicalを付けず、`noindex` のみ指定します。OGP画像は未設定です。
+ビルド時にトップ・検索・枚数別一覧・全詳細ページの正規URLを含む `sitemap.xml` も生成します。
 Cloudflare PagesのDBプロジェクトにこのカスタムドメインを追加し、
 案内に従ってDNSを設定してください。リポジトリの変更だけではDNS設定・公開は行われません。
 
@@ -411,7 +412,7 @@ npm run preview --workspace=@prime-qk/db -- --host 127.0.0.1 --port 4175 --stric
 
 - Freeプランの20,000ファイル・1ファイル25 MiB以内。
 - 全数の静的詳細HTML、カード表現アンカー、本番canonical・OG URL、参照アセットが存在する。
-- 判定・並べ替えのWorker、固定JSON/TXT、トップ階層の404と既定リダイレクトが揃っている。
+- 判定・並べ替えのWorker、固定JSON/TXT、正規URLを網羅したサイトマップ、トップ階層の404と既定リダイレクトが揃っている。
 - ソースマップ・TypeScript/Vueソース・隠しファイルが公開出力に混入していない。
 
 出力だけを再検証する場合は `npm run check:pages --workspace=@prime-qk/db` を実行します。

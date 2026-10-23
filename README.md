@@ -174,6 +174,8 @@ The production origin is `https://db.primeqk.butchi.jp`. Generated list and deta
 pages include absolute canonical and Open Graph URLs, titles, and descriptions.
 Search variants use `/numbers` as their canonical URL. The 404 page remains
 `noindex` without a canonical URL. An OGP image is not configured yet.
+The build also generates `sitemap.xml` with the canonical URLs for the homepage,
+search, grouped list, and every catalog detail page.
 Attach this custom domain to the DB project in Cloudflare Pages and follow its
 DNS setup instructions; repository changes alone do not configure DNS or deploy.
 
@@ -381,8 +383,8 @@ npm run preview --workspace=@prime-qk/db -- --host 127.0.0.1 --port 4175 --stric
 `build:pages` builds and runs `check:pages`, failing if the Free plan's
 20,000-file / 25-MiB-per-file limits are exceeded, any detail HTML/card anchor/
 production canonical/OG URL/referenced asset is missing, or Workers, fixed exports,
-top-level 404, and redirects are incorrect. It also rejects source maps, TS/Vue
-sources, and hidden files in the output. Recheck existing output using
+the canonical-URL sitemap, top-level 404, and redirects are incorrect. It also
+rejects source maps, TS/Vue sources, and hidden files in the output. Recheck existing output using
 `npm run check:pages --workspace=@prime-qk/db`.
 
 For Pages-specific local routing validation without authentication or deployment:

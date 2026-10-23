@@ -4,12 +4,17 @@ import { readFileSync } from 'node:fs'
 import { canonicalPath } from './src/urls'
 import { catalogEntries } from '../../packages/catalog/src/index'
 import { createCatalogList, catalogListText } from './src/catalog-list'
+import { createSitemapXml } from './src/sitemap'
 import type { Connect } from 'vite'
 
 const paths = new Set(['/', '/numbers', '/numbers/list', ...catalogEntries.map(entry => `/numbers/${entry.value}`)])
 function routes(preview: boolean): Connect.NextHandleFunction {
   return (request, response, next) => {
     const url = new URL(request.url ?? '/', 'http://localhost')
+    if (!preview && url.pathname === '/sitemap.xml') {
+      response.writeHead(200, { 'Content-Type': 'application/xml; charset=utf-8' })
+      return response.end(createSitemapXml())
+    }
     if (!preview && ['/numbers/list.json', '/numbers/list.txt'].includes(url.pathname)) {
       const list = createCatalogList()
       const json = url.pathname.endsWith('.json')

@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs'
 import { catalogEntries, catalogScopeDescription } from '../../../packages/catalog/src/index.ts'
 import { createCatalogList, catalogListText } from '../src/catalog-list.ts'
+import { createSitemapXml } from '../src/sitemap.ts'
 
 const directory = new URL('../dist/', import.meta.url)
 const template = readFileSync(new URL('index.html', directory), 'utf8')
@@ -53,7 +54,8 @@ for (const entry of catalogEntries) {
     `${entry.value} は素数です。${catalogScopeDescription}。収録済みカード表現${entry.representations.length}通りを紹介します。`,
     `numbers/${entry.value}.html`)
 }
+writeFileSync(new URL('sitemap.xml', directory), createSitemapXml())
 await write('/404', 'ページが見つかりません | QKサーチ', '未収録の数または存在しないページです。', '404.html')
 writeFileSync(new URL('_redirects', directory), redirects.join('\n') + '\n')
 rmSync(new URL('../dist-ssr/', import.meta.url), { recursive: true })
-console.log(`${catalogEntries.length}件の詳細HTML・トップ・検索・枚数別一覧・JSON・TXT・404を生成しました。`)
+console.log(`${catalogEntries.length}件の詳細HTML・トップ・検索・枚数別一覧・JSON・TXT・サイトマップ・404を生成しました。`)

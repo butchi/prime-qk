@@ -3,6 +3,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { catalogEntries } from '../../../packages/catalog/src/index.ts'
 import { createCatalogList, catalogListText } from '../src/catalog-list.ts'
+import { createSitemapXml } from '../src/sitemap.ts'
 
 const directory = new URL('../dist/', import.meta.url)
 const files: { path: string; size: number }[] = []
@@ -69,10 +70,11 @@ assert.deepEqual(redirects, [
 const list = createCatalogList()
 assert.deepEqual(JSON.parse(read('numbers/list.json')), list, '固定JSONがカタログと一致しません。')
 assert.equal(read('numbers/list.txt'), catalogListText(list), '固定TXTがカタログと一致しません。')
+assert.equal(read('sitemap.xml'), createSitemapXml(), 'サイトマップが公開ページの正規URLと一致しません。')
 assert.ok(files.some(file => /^assets\/primality\.worker-.+\.js$/.test(file.path)), '素数判定Workerがありません。')
 assert.ok(files.some(file => /^assets\/permutations\.worker-.+\.js$/.test(file.path)), '並べ替えWorkerがありません。')
 
 const largest = files.reduce((left, right) => left.size >= right.size ? left : right)
 console.log(`Pages公開出力を検証しました：${fileURLToPath(directory)}`)
 console.log(`${files.length}ファイル（上限20,000）、最大${(largest.size / 1024 / 1024).toFixed(2)} MiB（上限25 MiB）：${largest.path}`)
-console.log(`${catalogEntries.length}件の詳細・canonical・カード表現・アセット・Worker・404・リダイレクト・JSON/TXT：正常`)
+console.log(`${catalogEntries.length}件の詳細・canonical・カード表現・アセット・Worker・404・リダイレクト・JSON/TXT・サイトマップ：正常`)
