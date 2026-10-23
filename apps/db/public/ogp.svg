@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#f5f8f6" />
+      <stop offset="1" stop-color="#e7f1ee" />
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#1a5149" flood-opacity=".16" />
+    </filter>
+  </defs>
+  <rect width="1280" height="800" fill="url(#background)" />
+  <circle cx="1090" cy="115" r="210" fill="#d8e9e4" />
+  <circle cx="120" cy="720" r="190" fill="#e0ede9" />
+  <rect x="72" y="72" width="1136" height="656" rx="42" fill="#fff" />
+  <path d="M72 114a42 42 0 0 1 42-42h1052a42 42 0 0 1 42 42v90H72z" fill="#367f75" />
+  <circle cx="127" cy="137" r="25" fill="#fff" />
+  <text x="127" y="146" fill="#28695f" font-family="Arial, sans-serif" font-size="22" font-weight="800" text-anchor="middle">QK</text>
+  <text x="171" y="148" fill="#fff" font-family="sans-serif" font-size="29" font-weight="700">PRIME QK</text>
+  <g filter="url(#shadow)" transform="rotate(-10 855 428)">
+    <rect x="723" y="267" width="194" height="282" rx="18" fill="#fff" stroke="#dbe6e2" stroke-width="3" />
+    <text x="753" y="315" fill="#367f75" font-family="Georgia, serif" font-size="39" font-weight="700">Q</text>
+    <text x="820" y="445" fill="#367f75" font-family="Georgia, serif" font-size="112" font-weight="700" text-anchor="middle">Q</text>
+    <text x="883" y="515" fill="#367f75" font-family="Georgia, serif" font-size="39" font-weight="700" text-anchor="end">Q</text>
+  </g>
+  <g filter="url(#shadow)" transform="rotate(9 1008 445)">
+    <rect x="889" y="290" width="194" height="282" rx="18" fill="#fff" stroke="#dbe6e2" stroke-width="3" />
+    <text x="919" y="338" fill="#c45b52" font-family="Georgia, serif" font-size="39" font-weight="700">K</text>
+    <text x="986" y="468" fill="#c45b52" font-family="Georgia, serif" font-size="112" font-weight="700" text-anchor="middle">K</text>
+    <text x="1049" y="538" fill="#c45b52" font-family="Georgia, serif" font-size="39" font-weight="700" text-anchor="end">K</text>
+  </g>
+  <text x="155" y="370" fill="#28695f" font-family="sans-serif" font-size="78" font-weight="800">QKサーチ</text>
+  <text x="159" y="438" fill="#34423f" font-family="sans-serif" font-size="34" font-weight="600">素数大富豪の数を検索・判定</text>
+  <rect x="159" y="490" width="395" height="3" rx="2" fill="#dce9e5" />
+  <text x="159" y="548" fill="#5a6c67" font-family="sans-serif" font-size="25">カード列も、整数も。</text>
+  <text x="159" y="588" fill="#5a6c67" font-family="sans-serif" font-size="25">素数をすばやくチェック。</text>
+  <rect x="159" y="637" width="182" height="49" rx="24" fill="#e7f1ee" />
+  <text x="250" y="670" fill="#28695f" font-family="Arial, sans-serif" font-size="19" font-weight="700" text-anchor="middle">SEARCH  ·  CHECK</text>
+</svg>
