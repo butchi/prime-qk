@@ -21,6 +21,8 @@ async function write(path: string, title: string, description: string, file: str
     .replace('<div id="app"></div>', `<div id="app">${body}</div>`)
     .replace('<title>QKサーチ — 素数大富豪の数を検索・判定</title>', `<title>${title}</title>`)
     .replace(/<meta name="description" content="[^"]*" \/>/, `<meta name="description" content="${description}" />`)
+    .replace(/<meta name="twitter:title" content="[^"]*" \/>/, `<meta name="twitter:title" content="${title}" />`)
+    .replace(/<meta name="twitter:description" content="[^"]*" \/>/, `<meta name="twitter:description" content="${description}" />`)
   if (file === '404.html') {
     html = html.replace('</head>', '<meta name="robots" content="noindex" /></head>')
   } else {
