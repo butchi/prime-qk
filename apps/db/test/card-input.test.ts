@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { parseCards, parseCheckerInput } from '../src/card-input.ts'
+import { parseCards, parseCheckerInput, readCheckerUrl } from '../src/card-input.ts'
 
 test('整数とカード列を自動判別し、共有URLの明示形式も維持する', () => {
   for (const input of ['1213', '13', '23', '0013', '+13', ' -13 ', '0']) {
@@ -33,5 +33,20 @@ test('カード文字とランク列を同じ順序付き配列に変換する',
 test('曖昧な数列・未対応の文字・デッキ上限超えを拒否する', () => {
   for (const input of ['', '1213', '23', '12K', '01-13', '0', '14', 'X', 'SA', 'Q K', 'AAAAA', '2-2-2-2-2', '12--13']) {
     assert.throws(() => parseCards(input), input)
+  }
+})
+
+test('判定URLはqだけを受け付け、入力表記を保持する', () => {
+  assert.deepEqual(readCheckerUrl(new URLSearchParams('q=QK')), {
+    input: 'QK', shouldCheck: true,
+  })
+  assert.deepEqual(readCheckerUrl(new URLSearchParams('q=+qk+')), {
+    input: ' qk ', shouldCheck: true,
+  })
+  assert.deepEqual(readCheckerUrl(new URLSearchParams()), {
+    input: '', shouldCheck: false,
+  })
+  for (const query of ['q=QK&q=AK', 'sequence=12-13', 'value=1213', 'unknown=QK']) {
+    assert.throws(() => readCheckerUrl(new URLSearchParams(query)), query)
   }
 })

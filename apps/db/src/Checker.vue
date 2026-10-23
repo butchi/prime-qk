@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { catalogEntries, formatCards, catalogScopeDescription } from '@prime-qk/catalog'
-import { parseCheckerInput } from './card-input'
+import { parseCheckerInput, readCheckerUrl } from './card-input'
 import type { PrimalityResult } from './primality'
 import PermutationResults from './PermutationResults.vue'
 
@@ -31,7 +31,7 @@ function check(updateUrl = true, format?: 'integer' | 'cards') {
     cards.value = ranks
     value.value = String(parsed)
     if (updateUrl) {
-      const params = new URLSearchParams(ranks.length ? { sequence: ranks.join('-') } : { value: value.value })
+      const params = new URLSearchParams({ q: input.value })
       window.history.pushState(null, '', `/?${params}`)
     }
     running.value = true
@@ -68,15 +68,15 @@ function restore() {
   stop()
   error.value = ''
   result.value = null
-  const params = new URLSearchParams(window.location.search)
-  if ([...params.keys()].some(key => !['value', 'sequence'].includes(key)) ||
-      params.getAll('value').length > 1 || params.getAll('sequence').length > 1 ||
-      (params.has('value') && params.has('sequence'))) {
-    error.value = 'URLの判定条件が不正です。value または sequence を1つだけ指定してください。'
+  let state: ReturnType<typeof readCheckerUrl>
+  try {
+    state = readCheckerUrl(new URLSearchParams(window.location.search))
+  } catch (cause) {
+    error.value = cause instanceof Error ? cause.message : 'URLの判定条件が不正です。'
     return
   }
-  input.value = params.get('sequence') ?? params.get('value') ?? ''
-  if (params.has('value') || params.has('sequence')) check(false, params.has('sequence') ? 'cards' : 'integer')
+  input.value = state.input
+  if (state.shouldCheck) check(false)
 }
 
 function cancel() {

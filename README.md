@@ -158,7 +158,8 @@ Existing game logic has not been moved to `packages/core`.
 - `/numbers/list` shows the complete catalog grouped by card count and digit count.
   `/numbers/list.json` and `/numbers/list.txt` provide the same grouped list as static files.
 - `/numbers/1213` identifies the integer; `#cards-12-13` highlights Q K.
-- `/?value=1213` checks an integer; `/?sequence=12-13` checks Q K.
+- New checker URLs store the original input in `q`, for example `/?q=QK`, so the same notation is restored on reload.
+- Checker URLs accept only `q`; legacy `value` and `sequence` parameters are not supported.
 - `/sequences/12-13` is reserved for future sequence-specific pages.
 - Searches and pagination update browser history and restore on reload/back/forward.
   Invalid, duplicate, or unknown conditions and out-of-range pages show errors.
@@ -408,12 +409,12 @@ When publishing:
 
 | Check | Expected |
 | --- | --- |
-| `/` and `/?sequence=12-13` | Checker, prime verdict and permutation search for QK |
+| `/` and `/?q=QK` | Checker, prime verdict and permutation search for QK |
 | `/numbers?cards=6&digits=12` | 189 results and restricted-coverage notice |
 | `/numbers?constellation=triplet&same-prefix=1&min=101&max=113` | Two groups: 101/103/107 and 103/107/109 |
 | `/numbers/1213` and `/numbers/131313131011` | 200, QK / KKKKTJ representations |
 | `/numbers/list`, `/numbers/list.json`, `/numbers/list.txt` | Full 3,302-number catalog, scope through six cards |
-| `/checker?value=1213` and `/checker/?value=1213` | 301 to `/`, preserving the query |
+| `/checker?q=1213` and `/checker/?q=1213` | 301 to `/`, preserving the query |
 | `/numbers/`, `/numbers/1213/`, `/numbers/1213.html` | Slashless, extensionless canonical routes |
 | `/numbers/001213` | Redirect to `/numbers/1213`, removing one leading zero per hop |
 | `/numbers/4` and unknown paths | Genuine HTTP 404, not a home fallback |

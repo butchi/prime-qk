@@ -7,6 +7,17 @@ export function parseCheckerInput(input: string, format?: 'integer' | 'cards') {
   return { ranks, value: parseInput(isCards ? ranks.join('') : input) }
 }
 
+export function readCheckerUrl(params: URLSearchParams) {
+  for (const key of params.keys()) {
+    if (key !== 'q') throw new Error(`不明な判定条件です：${key}`)
+    if (params.getAll(key).length !== 1) throw new Error(`判定条件が重複しています：${key}`)
+  }
+  return {
+    input: params.get('q') ?? '',
+    shouldCheck: params.has('q'),
+  }
+}
+
 export function parseCards(input: string): number[] {
   const text = input.trim().toUpperCase()
   const labels: Record<string, number> = { A: 1, T: 10, J: 11, Q: 12, K: 13 }
