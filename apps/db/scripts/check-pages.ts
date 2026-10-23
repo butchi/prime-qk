@@ -37,6 +37,9 @@ const pages: [string, string][] = [
 for (const [file, path] of pages) {
   const html = read(file)
   const url = `https://db.primeqk.butchi.jp${path}`
+  assert.ok(html.includes('adsbygoogle.js?client=ca-pub-2862407789219932'), `AdSenseローダーがありません：${file}`)
+  assert.ok(html.includes('data-ad-client="ca-pub-2862407789219932"'), `AdSense clientが不正です：${file}`)
+  assert.ok(html.includes('data-ad-slot="4301222298"'), `AdSense slotが不正です：${file}`)
   assert.ok(html.includes(`<link rel="canonical" href="${url}" />`), `canonicalが不正です：${file}`)
   assert.ok(html.includes(`<meta property="og:url" content="${url}" />`), `OG URLが不正です：${file}`)
   assert.ok(!html.includes('http://localhost') && !html.includes('http://127.0.0.1'), `ローカルURLが残っています：${file}`)

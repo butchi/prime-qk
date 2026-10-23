@@ -4,6 +4,7 @@ import { catalogEntries, formatCards, catalogScopeDescription } from '@prime-qk/
 import NumberList from './NumberList.vue'
 import Checker from './Checker.vue'
 import CatalogList from './CatalogList.vue'
+import AdSense from './AdSense.vue'
 import { canonicalPath } from './urls'
 
 const props = defineProps<{ url: string }>()
@@ -73,4 +74,5 @@ onMounted(() => {
     <a href="/numbers">数の一覧・検索へ</a>
     <p><a href="/">トップで素数判定する</a></p>
   </main>
+  <AdSense />
 </template>
