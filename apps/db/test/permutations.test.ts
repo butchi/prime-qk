@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { catalogEntries } from '@prime-qk/catalog'
-import { searchPermutations } from '../src/permutations.ts'
+import { compileCardPattern, searchPermutations } from '../src/permutations.ts'
 
 test('カードをすべて使う順列の素数はカタログと独立照合できる', () => {
   for (const ranks of [[1, 3], [1, 1, 3], [12, 13], [10, 11, 13], [2], [1], [2, 2]]) {
@@ -44,4 +44,26 @@ test('時間切れと100件超過を完了と混同せず、途中結果を通�
   assert.ok(notifications >= 101)
   assert.deepEqual(limited.matches.map(item => item.value),
     [...limited.matches].sort((a, b) => BigInt(a.value) > BigInt(b.value) ? -1 : 1).map(item => item.value))
+})
+
+test('カード表記の正規表現で順列と表現を絞り込む', () => {
+  const result = searchPermutations([1, 11, 7], () => {}, 5000, '^1[J]7$')
+  const letterAlias = searchPermutations([1, 11, 7], () => {}, 5000, '^A[J]7$')
+  assert.equal(result.reason, 'complete')
+  assert.deepEqual(result.matches.map(item => item.value), ['1117'])
+  assert.deepEqual(result.matches[0]!.representations, [[1, 11, 7]])
+  assert.deepEqual(letterAlias.matches, result.matches)
+  const counted = searchPermutations([1, 1, 3], () => {}, 5000, '^A{2}3$')
+  assert.deepEqual(counted.matches.map(item => item.representations), [[[1, 1, 3]]])
+})
+
+test('カード表記の正規表現は対応する構文を検証し、繰り返しを最大4回に制限する', () => {
+  assert.equal(compileCardPattern('^[TJQK]+$')!.test('TQK'), true)
+  assert.equal(compileCardPattern('^[2-9]?$')!.test('8'), true)
+  assert.equal(compileCardPattern('^A*$')!.test('AAAA'), true)
+  assert.equal(compileCardPattern('^A*$')!.test('AAAAA'), false)
+  assert.equal(compileCardPattern('^A+$')!.test('AAAA'), true)
+  assert.equal(compileCardPattern('^A+$')!.test('AAAAA'), false)
+  assert.throws(() => compileCardPattern('[A-K]'))
+  assert.throws(() => compileCardPattern('(?=A)'))
 })

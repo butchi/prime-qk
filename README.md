@@ -58,6 +58,17 @@ import provenance. Shared logic remains inside each app for now.
 
 The service is named "QKサーチ — 素数大富豪の数を検索・判定".
 Catalog search and integer/card-sequence primality checking are available.
+The homepage also accepts card-pattern expressions such as `^[2468]J$`.
+It generates only the sequences described by the entire expression, without
+permuting them, and checks for primes or prime candidates. `A` and `1` both
+mean ace; supported operators are character classes (including digit ranges),
+`()` / `|` / `?` / `*` / `+` / `{n}` / `{n,m}` / `^` / `$`. `*` repeats
+0–4 times, `+` 1–4 times, and explicit counts must be between 0 and 52.
+Open-ended `{n,}` is not supported. Omitting `^` and `$` does not change
+the generated sequences.
+Expressions are limited to 200 characters, four cards of each rank and 52
+cards total. Searches run in a Web Worker for at most five seconds and show
+up to 100 numbers; interrupted or truncated searches are marked incomplete.
 
 ```sh
 npm run dev --workspace=@prime-qk/db -- --port 5175 --strictPort

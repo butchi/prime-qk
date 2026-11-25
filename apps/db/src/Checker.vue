@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { catalogEntries, formatCards, catalogScopeDescription } from '@prime-qk/catalog'
-import { parseCheckerInput, readCheckerUrl } from './card-input'
+import { isCardPattern, parseCheckerInput, readCheckerUrl } from './card-input'
 import type { PrimalityResult } from './primality'
 import PermutationResults from './PermutationResults.vue'
+import PatternResults from './PatternResults.vue'
 
 const input = ref('')
 const cards = ref<number[]>([])
 const value = ref('')
 const result = ref<PrimalityResult | null>(null)
+const pattern = ref('')
+const patternSearchId = ref(0)
 const error = ref('')
 const running = ref(false)
 let worker: Worker | undefined
@@ -26,7 +29,14 @@ function check(updateUrl = true, format?: 'integer' | 'cards') {
   error.value = ''
   result.value = null
   cards.value = []
+  pattern.value = ''
   try {
+    if (format === undefined && isCardPattern(input.value)) {
+      if (updateUrl) window.history.pushState(null, '', `/?${new URLSearchParams({ q: input.value })}`)
+      pattern.value = input.value.trim()
+      patternSearchId.value++
+      return
+    }
     const { ranks, value: parsed } = parseCheckerInput(input.value, format)
     cards.value = ranks
     value.value = String(parsed)
@@ -68,6 +78,7 @@ function restore() {
   stop()
   error.value = ''
   result.value = null
+  pattern.value = ''
   let state: ReturnType<typeof readCheckerUrl>
   try {
     state = readCheckerUrl(new URLSearchParams(window.location.search))
@@ -103,8 +114,8 @@ onUnmounted(() => {
     <div class="checker-input">
       <form @submit.prevent="check()">
         <label>
-          <span class="visually-hidden">判定する数・カード列</span>
-          <input v-model="input" type="text" placeholder="数・カード列を入力（例：1213、QK）" aria-describedby="input-help" />
+          <span class="visually-hidden">判定する数・カード列・正規表現</span>
+          <input v-model="input" type="text" placeholder="数・カード列・正規表現（例：1213、QK、^[2468]J$）" aria-describedby="input-help" />
         </label>
         <div class="actions">
           <button type="submit">判定する</button>
@@ -113,14 +124,16 @@ onUnmounted(() => {
         <nav aria-label="検索"><a href="/numbers">数の一覧・検索へ</a></nav>
         <details class="help">
           <summary>使い方</summary>
-          <p id="input-help">数字だけなら整数、QK・A23・12-13などはカード列として判定します。手札や場に対する合法手は判定しません。</p>
+          <p id="input-help">数字だけなら整数、QK・A23・12-13などはカード列として判定します。^[2468]J$ のような正規表現はカード列を生成して検索します。手札や場に対する合法手は判定しません。</p>
           <p>整数は半角数字で最大200桁（先頭ゼロを含む、符号・前後の空白は除く）。先頭の +・- は使用できます。小数・指数表記は使用できません。1213や13はカードに分割しません。</p>
           <p>カード列はQK・A23 または 12-13・1-2-3。A=1、T=10、J=11、Q=12、K=13（小文字も可）。数字のみの複数枚はハイフンで区切ります。ジョーカーなし・各ランク4枚まで、最大52枚。スート・空白区切りは対象外です。</p>
+          <p>正規表現は200文字以内で、A・1・2〜9・T・J・Q・K と [TJQK]、[2-9]、()、|、?、*、+、{n}、{n,m}、^、$ を使用できます。大文字で入力し、*は0〜4回、+は1〜4回、{n}・{n,m}は0〜52回の範囲で繰り返します。{n,}は使用できません。^・$を省略しても式全体から生成した列だけを検索し、並べ替えません。各ランク4枚まで、最大52枚・5秒・表示100件までです。</p>
         </details>
       </form>
       <p v-if="running" role="status">計算中です（最大5秒）…</p>
       <p v-if="error" role="alert" class="error">{{ error }}</p>
     </div>
+    <PatternResults v-if="pattern" :key="patternSearchId" :pattern="pattern" />
     <section v-if="result" aria-labelledby="result-heading" aria-live="polite">
       <h2 id="result-heading">判定結果</h2>
       <p class="checked-number">{{ value }}</p>

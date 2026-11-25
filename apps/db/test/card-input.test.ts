@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { parseCards, parseCheckerInput, readCheckerUrl } from '../src/card-input.ts'
+import { isCardPattern, parseCards, parseCheckerInput, readCheckerUrl } from '../src/card-input.ts'
+
+test('正規表現を整数や通常のカード列と区別する', () => {
+  for (const input of ['^[2468]J$', 'A+', '(A|J)3', '[2-9]', '2{3}', 'A{1,}']) assert.equal(isCardPattern(input), true)
+  for (const input of ['+13', '-13', '1213', 'QK', '1-2-3']) assert.equal(isCardPattern(input), false)
+})
 
 test('整数とカード列を自動判別し、共有URLの明示形式も維持する', () => {
   for (const input of ['1213', '13', '23', '0013', '+13', ' -13 ', '0']) {

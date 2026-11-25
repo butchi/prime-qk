@@ -1,5 +1,10 @@
 import { parseInput } from './primality'
 
+export function isCardPattern(input: string): boolean {
+  const text = input.trim()
+  return !/^[+-]?\d+$/.test(text) && /[\[\]{}()|?*+^$]/.test(text)
+}
+
 export function parseCheckerInput(input: string, format?: 'integer' | 'cards') {
   const isCards = format === 'cards' ||
     (format === undefined && (/[a-z]/i.test(input) || /^\d+-/.test(input.trim())))
