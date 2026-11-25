@@ -31,6 +31,16 @@ npm run dev
 `npm run dev` starts Prime QK Console. To run its scripts explicitly, use
 `npm run <script> --workspace=@prime-qk/web-console`.
 
+Biome formats and lints supported files across the repository. Run these commands
+from the repository root:
+
+```sh
+npm run format
+npm run format:check
+npm run lint
+npm run check
+```
+
 To start Kantan Sosu Daifugo:
 
 ```sh

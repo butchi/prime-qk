@@ -21,6 +21,13 @@
   "scripts": {
     "dev": "npm run dev --workspace=@prime-qk/web-console --",
     "build": "npm run build --workspaces --if-present",
-    "preview": "npm run preview --workspace=@prime-qk/web-console --"
+    "preview": "npm run preview --workspace=@prime-qk/web-console --",
+    "format": "biome format --write .",
+    "format:check": "biome format . --check",
+    "lint": "biome lint .",
+    "check": "biome check ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.9"
   }
 }
