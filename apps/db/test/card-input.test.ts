@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { isCardPattern, parseCards, parseCheckerInput, readCheckerUrl } from '../src/card-input.ts'
+import { enumerateCardSplits, isCardPattern, parseCards, parseCheckerInput, readCheckerUrl } from '../src/card-input.ts'
 
 test('正規表現を整数や通常のカード列と区別する', () => {
   for (const input of ['^[2468]J$', 'A+', '(A|J)3', '[2-9]', '2{3}', 'A{1,}']) assert.equal(isCardPattern(input), true)
@@ -38,6 +38,27 @@ test('カード文字とランク列を同じ順序付き配列に変換する',
 test('曖昧な数列・未対応の文字・デッキ上限超えを拒否する', () => {
   for (const input of ['', '1213', '23', '12K', '01-13', '0', '14', 'X', 'SA', 'Q K', 'AAAAA', '2-2-2-2-2', '12--13']) {
     assert.throws(() => parseCards(input), input)
+  }
+})
+
+test('整数の数字並びからカード分割候補を列挙する', () => {
+  assert.deepEqual(enumerateCardSplits('1213'), {
+    splits: [[12, 13], [12, 1, 3], [1, 2, 13], [1, 2, 1, 3]],
+    truncated: false,
+  })
+  // 各ランク4枚までの制約を守り、枚数の少ない順に並べる
+  assert.deepEqual(enumerateCardSplits('111111'), {
+    splits: [[11, 11, 11], [11, 11, 1, 1], [11, 1, 11, 1], [11, 1, 1, 11], [1, 11, 11, 1],
+      [1, 11, 1, 11], [1, 1, 11, 11], [11, 1, 1, 1, 1], [1, 11, 1, 1, 1], [1, 1, 11, 1, 1]],
+    truncated: true,
+  })
+  // 1枚だけの分割（整数判定と同じ）は含めない
+  assert.deepEqual(enumerateCardSplits('13'), { splits: [[1, 3]], truncated: false })
+  assert.deepEqual(enumerateCardSplits('7'), { splits: [], truncated: false })
+  // 0はカードにならないため、10〜13の一部としてのみ分割できる
+  assert.deepEqual(enumerateCardSplits('105'), { splits: [[10, 5]], truncated: false })
+  for (const value of ['0', '20', '014', '-13', '']) {
+    assert.deepEqual(enumerateCardSplits(value), { splits: [], truncated: false }, value)
   }
 })
 

@@ -23,6 +23,46 @@ export function readCheckerUrl(params: URLSearchParams) {
   }
 }
 
+// 整数の十進文字列をカード列（1〜9・10〜13、各ランク4枚まで）に分割する候補を列挙する。
+// 1枚だけの分割は整数判定と同じ値になるため除外する。
+// limit件または探索上限を超える場合はtruncatedで示す。
+export function enumerateCardSplits(value: string, limit = 10): { splits: number[][]; truncated: boolean } {
+  const splits: number[][] = []
+  if (!/^\d+$/.test(value)) return { splits, truncated: false }
+  const counts = new Map<number, number>()
+  const current: number[] = []
+  let steps = 0
+  let truncated = false
+  function walk(position: number): void {
+    if (truncated) return
+    if (++steps > 100000) {
+      truncated = true
+      return
+    }
+    if (position === value.length) {
+      if (current.length < 2) return
+      if (splits.length === limit) truncated = true
+      else splits.push([...current])
+      return
+    }
+    for (const length of [2, 1]) {
+      const token = value.slice(position, position + length)
+      const rank = Number(token)
+      if (token.length !== length || token.startsWith('0') || rank < 1 || rank > 13) continue
+      const count = (counts.get(rank) ?? 0) + 1
+      if (count > 4) continue
+      counts.set(rank, count)
+      current.push(rank)
+      walk(position + length)
+      current.pop()
+      counts.set(rank, count - 1)
+    }
+  }
+  walk(0)
+  splits.sort((a, b) => a.length - b.length)
+  return { splits, truncated }
+}
+
 export function parseCards(input: string): number[] {
   const text = input.trim().toUpperCase()
   const labels: Record<string, number> = { A: 1, T: 10, J: 11, Q: 12, K: 13 }

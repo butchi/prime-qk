@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { catalogEntries, formatCards, catalogScopeDescription } from '@prime-qk/catalog'
-import { isCardPattern, parseCheckerInput, readCheckerUrl } from './card-input'
+import { enumerateCardSplits, isCardPattern, parseCheckerInput, readCheckerUrl } from './card-input'
 import type { PrimalityResult } from './primality'
 import PermutationResults from './PermutationResults.vue'
 import PatternResults from './PatternResults.vue'
@@ -14,6 +14,9 @@ const pattern = ref('')
 const patternSearchId = ref(0)
 const error = ref('')
 const running = ref(false)
+// 整数として判定したとき、同じ数字並びになるカード分割候補を提示する
+const cardSplits = computed(() =>
+  result.value && !cards.value.length ? enumerateCardSplits(value.value) : { splits: [], truncated: false })
 let worker: Worker | undefined
 let timeout: ReturnType<typeof setTimeout> | undefined
 
@@ -125,7 +128,7 @@ onUnmounted(() => {
         <details class="help">
           <summary>使い方</summary>
           <p id="input-help">数字だけなら整数、QK・A23・12-13などはカード列として判定します。^[2468]J$ のような正規表現はカード列を生成して検索します。手札や場に対する合法手は判定しません。</p>
-          <p>整数は半角数字で最大200桁（先頭ゼロを含む、符号・前後の空白は除く）。先頭の +・- は使用できます。小数・指数表記は使用できません。1213や13はカードに分割しません。</p>
+          <p>整数は半角数字で最大200桁（先頭ゼロを含む、符号・前後の空白は除く）。先頭の +・- は使用できます。小数・指数表記は使用できません。1213や13はカードに分割しませんが、判定結果からカード分割候補を選んで判定し直せます。</p>
           <p>カード列はQK・A23 または 12-13・1-2-3。A=1、T=10、J=11、Q=12、K=13（小文字も可）。数字のみの複数枚はハイフンで区切ります。ジョーカーなし・各ランク4枚まで、最大52枚。スート・空白区切りは対象外です。</p>
           <p>正規表現は200文字以内で、A・1・2〜9・T・J・Q・K と [TJQK]、[2-9]、()、|、?、*、+、{n}、{n,m}、^、$ を使用できます。大文字で入力し、*は0〜4回、+は1〜4回、{n}・{n,m}は0〜52回の範囲で繰り返します。{n,}は使用できません。^・$を省略しても式全体から生成した列だけを検索し、並べ替えません。各ランク4枚まで、最大52枚・5秒・表示100件までです。</p>
         </details>
@@ -155,6 +158,16 @@ onUnmounted(() => {
       <p v-if="catalogEntries.some(entry => entry.value === value)"><a :href="`/numbers/${value}`">この数のカード表現を見る</a></p>
       <p v-else class="help">現在のカタログには未収録です。{{ catalogScopeDescription }}の収録範囲です。5〜6枚は限定収録であり、未収録は素数の不存在を意味しません。</p>
       <p v-if="!value.startsWith('-')"><a :href="`/numbers?exact=${value}`">この数をカタログで検索する</a></p>
+      <div v-if="cardSplits.splits.length" class="card-splits">
+        <h3>カード列として判定し直す</h3>
+        <p class="help">同じ数字並びになるカード分割です。カード列として判定すると、並べ替えの素数探索もできます。</p>
+        <ul>
+          <li v-for="split in cardSplits.splits" :key="split.join('-')">
+            <a :href="`/?q=${split.join('-')}`">{{ formatCards(split) }}</a>（{{ split.length }}枚）
+          </li>
+        </ul>
+        <p v-if="cardSplits.truncated" class="help">分割候補が多いため、一部のみ表示しています。</p>
+      </div>
       <PermutationResults v-if="cards.length" :key="cards.join('-')" :ranks="cards" :value="value" />
     </section>
   </main>

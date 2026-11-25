@@ -109,7 +109,7 @@ onUnmounted(stop)
     <p v-else-if="!running && state.matches.length === 0">素数・素数候補はまだ見つかっていません。</p>
     <ul>
       <li v-for="item in state.matches" :key="item.value">
-        <a :href="`/?sequence=${item.representations[0]!.join('-')}`">{{ item.value }}</a>
+        <a :href="`/?q=${item.representations[0]!.join('-')}`">{{ item.value }}</a>
         （{{ item.representations.map(formatCards).join(' / ') }}）
         <span v-if="item.result.kind === 'probable-prime'">素数候補（未証明）</span>
       </li>
