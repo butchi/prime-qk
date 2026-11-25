@@ -1083,18 +1083,18 @@ function selectCpuCandidate(
   mode: GameMode,
 ): PlayingCard[] {
   if (candidates.length === 0) return []
-  const valueOf = (cards: PlayingCard[]) => evalMain(cards)?.kind === 'finite'
+  const cardValue = (cards: PlayingCard[]) => evalMain(cards)?.kind === 'finite'
     ? (evalMain(cards) as Extract<FieldValue, { kind: 'finite' }>).value
     : mode === 'normal' ? 10n ** 30n : -(10n ** 30n)
   // 同じカードを使う並べ替えなら、通常時はより大きい数、革命時はより小さい数が
   // 常に上位互換になる。戦略レベル2以上では劣る並びを候補から除外する。
   const preferredCandidates = skill.strategy >= 2
-    ? removeDominatedOrderings(candidates, mode, valueOf)
+    ? removeDominatedOrderings(candidates, mode, cardValue)
     : candidates
   const sorted = [...preferredCandidates].sort((left, right) => {
     if (skill.strategy >= 2 && left.length !== right.length) return right.length - left.length
-    const leftValue = valueOf(left)
-    const rightValue = valueOf(right)
+    const leftValue = cardValue(left)
+    const rightValue = cardValue(right)
     return mode === 'normal' ? Number(leftValue - rightValue) : Number(rightValue - leftValue)
   })
   if (skill.strategy < 3) return sorted[0]
@@ -1112,7 +1112,7 @@ function selectCpuCandidate(
 function removeDominatedOrderings(
   candidates: PlayingCard[][],
   mode: GameMode,
-  valueOf: (cards: PlayingCard[]) => bigint,
+  cardValue: (cards: PlayingCard[]) => bigint,
 ): PlayingCard[][] {
   const bestByCardSet = new Map<string, PlayingCard[]>()
 
@@ -1124,8 +1124,8 @@ function removeDominatedOrderings(
       continue
     }
 
-    const candidateValue = valueOf(candidate)
-    const currentBestValue = valueOf(currentBest)
+    const candidateValue = cardValue(candidate)
+    const currentBestValue = cardValue(currentBest)
     const isBetter = mode === 'normal'
       ? candidateValue > currentBestValue
       : candidateValue < currentBestValue

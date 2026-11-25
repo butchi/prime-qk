@@ -91,8 +91,8 @@ const log = {
           const [player, seq] = str.slice(4).split(': ')
           const [pre, post] = seq.split(' => ')
 
-          let scoreCmdStr
-          let bodyStr
+          let scoreCmdStr: string | undefined
+          let bodyStr: string
 
           if (post == null) {
             bodyStr = pre
@@ -227,10 +227,9 @@ const execCommand = (inputStr = ''): string => {
     const isPrime = checkPrime(inputNum)
 
     let attackHtml = ''
-    let isValid
+    let isValid: boolean | undefined
 
-    if (inputNum === null) {
-    } else if (cardEntry.toString() === 'X') {
+    if (cardEntry.toString() === 'X') {
       attackHtml += `[x] **Joker**`
       isValid = true
     } else if (inputNum === 57n) {
@@ -409,7 +408,9 @@ const inputHandler = (evt: Event) => {
   handElm.removeAttribute('data-state')
   handElm
     .querySelectorAll('span')
-    .forEach((elm: HTMLSpanElement) => elm.removeAttribute('data-selected'))
+    .forEach((elm: HTMLSpanElement) => {
+      elm.removeAttribute('data-selected')
+    })
 
   if (cardEntry && cardEntry.checkInclude({ handGroup })) {
     let handStr = handCardArr.map((c: QkCard) => c.toString()).join('')

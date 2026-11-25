@@ -128,7 +128,13 @@ const cardComb = (...argArr) => {
     value *= 2;
   }
 
-  return cardCombArr[value] || (cardCombArr[value] = new CardComb(value));
+  if (cardCombArr[value]) {
+    return cardCombArr[value];
+  }
+
+  const comb = new CardComb(value);
+  cardCombArr[value] = comb;
+  return comb;
 }
 
 export default cardComb;

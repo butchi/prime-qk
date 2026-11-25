@@ -1,4 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>QKサーチ</title>
   <rect width="64" height="64" rx="15" fill="#367f75" />
   <path d="M15 12h34a5 5 0 0 1 5 5v30a5 5 0 0 1-5 5H15a5 5 0 0 1-5-5V17a5 5 0 0 1 5-5Z" fill="#fff" />
   <path d="M18 18h28v28H18z" fill="#e8f2ef" />

@@ -132,7 +132,13 @@ const ucardComb = (...argArr) => {
     value = parseInt(tallyArr.join(''), 5);
   }
 
-  return ucardCombArr[value] || (ucardCombArr[value] = new UcardComb(value));
+  if (ucardCombArr[value]) {
+    return ucardCombArr[value];
+  }
+
+  const comb = new UcardComb(value);
+  ucardCombArr[value] = comb;
+  return comb;
 };
 
 export default ucardComb;

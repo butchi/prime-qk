@@ -32,7 +32,9 @@ test('枚数・桁数別一覧は全表現を分類し、各分類内で数を�
 
     assert.equal(group.count, values.length)
     assert.deepEqual(new Set(values), new Set(expected.map(entry => entry.value)))
-    values.forEach(value => unique.add(value))
+    values.forEach(value => {
+      unique.add(value)
+    })
   }
   assert.equal(unique.size, list.total)
   const find = (cards: number, value: string) => list.groups.find(group => group.cardCount === cards)!

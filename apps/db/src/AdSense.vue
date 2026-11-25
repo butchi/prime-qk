@@ -8,7 +8,9 @@ declare global {
 }
 
 onMounted(() => {
-  ;(window.adsbygoogle = window.adsbygoogle || []).push({})
+  const adsbygoogle = window.adsbygoogle ?? []
+  window.adsbygoogle = adsbygoogle
+  adsbygoogle.push({})
 })
 </script>
 

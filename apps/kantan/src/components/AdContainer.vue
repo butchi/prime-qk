@@ -197,7 +197,9 @@ async function renderAd() {
     await ensureAdsenseScript(scriptUrl.value)
     await nextTick()
     await waitForAdSlotReady(adElement.value)
-    ;(window.adsbygoogle = window.adsbygoogle || []).push({})
+    const adsbygoogle = window.adsbygoogle ?? []
+    window.adsbygoogle = adsbygoogle
+    adsbygoogle.push({})
     adRendered.value = true
     adFailed.value = false
   } catch {

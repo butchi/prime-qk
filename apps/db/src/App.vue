@@ -21,7 +21,9 @@ onMounted(() => {
     return
   }
   const highlight = () => {
-    document.querySelectorAll('[data-selected]').forEach(element => element.removeAttribute('data-selected'))
+    document.querySelectorAll('[data-selected]').forEach(element => {
+      element.removeAttribute('data-selected')
+    })
     fragmentError.value = ''
     if (!window.location.hash || !entry) return
     const target = document.getElementById(window.location.hash.slice(1))

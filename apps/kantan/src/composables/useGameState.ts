@@ -209,7 +209,9 @@ export function useGameState() {
         // ドロー分のカードをアニメーション追跡
         const isPenalty = result.foulReason !== undefined
         if (result.drawnCardIds) {
-          result.drawnCardIds.forEach(id => drawnCardIds.value.add(id))
+          result.drawnCardIds.forEach(id => {
+            drawnCardIds.value.add(id)
+          })
         }
 
         // ペナルティ後は pile をクリア
@@ -242,7 +244,9 @@ export function useGameState() {
       }
       // ドロー時のカードをアニメーション追跡
       if (result.drawnCardIds) {
-        result.drawnCardIds.forEach(id => drawnCardIds.value.add(id))
+        result.drawnCardIds.forEach(id => {
+          drawnCardIds.value.add(id)
+        })
       }
       appendLog(result.message)
       syncFromEngine()

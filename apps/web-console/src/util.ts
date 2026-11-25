@@ -23,25 +23,25 @@ const miillerTest = (d: bigint, n: bigint) => {
 
   let x = power(a, d, n)
 
-  if (x == 1n || x == n - 1n) return true
+  if (x === 1n || x === n - 1n) return true
 
-  while (d != n - 1n) {
+  while (d !== n - 1n) {
     x = (x * x) % n
     d *= 2n
 
-    if (x == 1n) return false
-    if (x == n - 1n) return true
+    if (x === 1n) return false
+    if (x === n - 1n) return true
   }
 
   return false
 }
 
 export const checkPrimeBigInt = (n: bigint, k = 45) => {
-  if (n <= 1n || n == 4n) return false
+  if (n <= 1n || n === 4n) return false
   if (n <= 3n) return true
 
   let d = n - 1n
-  while (d % 2n == 0n) d /= 2n
+  while (d % 2n === 0n) d /= 2n
 
   for (let i = 0; i < k; i++) if (!miillerTest(d, n)) return false
 

@@ -3,12 +3,13 @@ import ucardComb from './ucard-comb.js';
 export default class UcardCombArray extends Uint32Array {
   constructor(arg) {
     if (arg === undefined) {
+      super();
     } else if (arg instanceof Array) {
-      const arr = arg;
-
-      super(arr);
+      super(arg);
     } else if (typeof arg === 'number') {
       super(arg);
+    } else {
+      throw new TypeError('Expected an array or length');
     }
   }
 
