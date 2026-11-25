@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { formatCards } from '@prime-qk/catalog'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import type { PermutationSearch } from './permutations'
 
 const props = defineProps<{ ranks: readonly number[]; value: string }>()
@@ -10,10 +10,18 @@ const appliedPattern = ref('')
 const running = ref(false)
 const error = ref('')
 const incomplete = ref('')
-const bestPrime = computed(() => state.value.matches.find(item => item.result.kind === 'prime'))
-const hasCandidates = computed(() => state.value.matches.some(item => item.result.kind === 'probable-prime'))
-const maximumProven = computed(() => !running.value && !error.value && !incomplete.value &&
-  state.value.reason === 'complete' && !hasCandidates.value)
+const bestPrime = computed(() => state.value.matches.find((item) => item.result.kind === 'prime'))
+const hasCandidates = computed(() =>
+  state.value.matches.some((item) => item.result.kind === 'probable-prime'),
+)
+const maximumProven = computed(
+  () =>
+    !running.value &&
+    !error.value &&
+    !incomplete.value &&
+    state.value.reason === 'complete' &&
+    !hasCandidates.value,
+)
 let worker: Worker | undefined
 let timer: ReturnType<typeof setTimeout> | undefined
 
@@ -38,7 +46,9 @@ function start() {
       incomplete.value = '探索未完了：5秒の時間制限で打ち切りました。'
     }, 5000)
     worker = new Worker(new URL('./permutations.worker.ts', import.meta.url), { type: 'module' })
-    worker.onmessage = (event: MessageEvent<{ state: PermutationSearch; done: boolean } | { error: string }>) => {
+    worker.onmessage = (
+      event: MessageEvent<{ state: PermutationSearch; done: boolean } | { error: string }>,
+    ) => {
       if ('error' in event.data) {
         stop()
         error.value = event.data.error
@@ -47,10 +57,12 @@ function start() {
       state.value = event.data.state
       if (!event.data.done) return
       stop()
-      if (state.value.reason === 'timeout') incomplete.value = '探索未完了：5秒の時間制限で打ち切りました。'
-      if (state.value.reason === 'limit') incomplete.value = '探索未完了：100件を超えたため打ち切りました（表示は100件まで）。'
+      if (state.value.reason === 'timeout')
+        incomplete.value = '探索未完了：5秒の時間制限で打ち切りました。'
+      if (state.value.reason === 'limit')
+        incomplete.value = '探索未完了：100件を超えたため打ち切りました（表示は100件まで）。'
     }
-    worker.onerror = event => {
+    worker.onerror = (event) => {
       event.preventDefault()
       stop()
       error.value = '並べ替え探索を実行できませんでした。再度お試しください。'
