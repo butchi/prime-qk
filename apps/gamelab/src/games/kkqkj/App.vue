@@ -44,7 +44,7 @@ const resultTitle = computed(() =>
       ? 'CPUの勝ち'
       : '引き分け',
 )
-const formatValue = (value: number) => value.toLocaleString('en-US')
+const formatValue = (value: number) => String(value)
 
 function cardName(card: PlayingCard) {
   return `${card.suit ? suitNames[card.suit] : ''}${cardToRankToken(card)}`
