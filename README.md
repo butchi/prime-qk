@@ -12,7 +12,7 @@ prime-qk/
 │   ├── web-console/  # Prime QK Console (including the existing _lib)
 │   ├── kantan/       # Kantan Sosu Daifugo (Vue app and CLI)
 │   ├── db/           # Number catalog and search site (Vue app)
-│   └── gamelab/      # GAME LAB, six experimental card games (Vue app)
+│   └── gamelab/      # GAME LAB, seven experimental card games (Vue app)
 ├── packages/
 │   └── catalog/      # Shared catalog types, data, generation, and search
 ├── scripts/          # Data generation scripts
@@ -67,7 +67,8 @@ import provenance. Shared logic remains inside each app for now.
 
 ### GAME LAB
 
-Six experimental card games imported from `butchi/2026-07-horo`.
+Seven experimental card games: six imported from `butchi/2026-07-horo`, plus
+the prime poker game KKQKJ (working title) at `/kkqkj`.
 Run these commands from the repository root:
 
 ```sh

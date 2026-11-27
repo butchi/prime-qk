@@ -8,7 +8,7 @@
 - `apps/web-console`: Prime QK Console。既存の `_lib` もアプリ内で管理する。
 - `apps/kantan`: カンタン素数大富豪。ブラウザ版・CLI・テストを含む。
 - `apps/db`: 数の一覧・検索サイトの土台。Vue 3 + TypeScript + Vite を使用する。
-- `apps/gamelab`: GAME LAB。素数大富豪ライクな6種類のカードゲーム集。Vue 3 + TypeScript + Vite を使用する。
+- `apps/gamelab`: GAME LAB。素数ポーカーを含む7種類のカードゲーム集。Vue 3 + TypeScript + Vite を使用する。
 - `packages/catalog`: 数のカタログの型・生成・検索処理とデータ。
   ジョーカーなし・1〜4枚は全ランク、5〜6枚はT・J・Q・Kのみを収録する。
   各ランク4枚まで。試し割りで確定判定し、5〜6枚の限定収録を画面と出力で明示する。

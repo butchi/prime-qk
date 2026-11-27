@@ -1,6 +1,12 @@
 <script setup lang="ts">
 const games = [
   {
+    path: '/kkqkj',
+    title: 'KKQKJ（仮）',
+    description: '5枚を素数に組み分ける、CPU対戦の素数ポーカー。',
+    kind: 'prime poker',
+  },
+  {
     path: '/kuku-daifugo',
     title: '九九大富豪',
     description: '因数2枚と答え札で九九をつくる。',

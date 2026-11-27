@@ -9,9 +9,16 @@ type GameRoute = {
   title: string
   loadApp: () => Promise<{ default: Component }>
   loadStyle: () => Promise<unknown>
+  useKukuTheme?: boolean
 }
 
 const games: Record<string, GameRoute> = {
+  '/kkqkj': {
+    title: 'KKQKJ（仮）',
+    loadApp: () => import('./games/kkqkj/App.vue'),
+    loadStyle: () => import('./games/kkqkj/style.css'),
+    useKukuTheme: false,
+  },
   '/kuku-daifugo': {
     title: '九九大富豪',
     loadApp: () => import('../mock/kuku-daifugo/src/App.vue'),
@@ -51,7 +58,7 @@ async function bootstrap() {
 
   if (game) {
     await game.loadStyle()
-    await import('./kuku-theme.css')
+    if (game.useKukuTheme !== false) await import('./kuku-theme.css')
     App = (await game.loadApp()).default
     document.title = `${game.title} | GAME LAB`
     const homeLink = document.createElement('a')
