@@ -1,0 +1,120 @@
+:root {
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Noto Sans JP",
+    sans-serif;
+  color: #202124;
+  background: #fff;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body,
+#app {
+  min-height: 100%;
+  margin: 0;
+}
+body {
+  min-width: 320px;
+}
+.mock-index {
+  width: min(720px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 64px 0;
+}
+header {
+  margin-bottom: 36px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 20px;
+}
+h1 {
+  margin: 0 0 9px;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+header p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+nav {
+  border-top: 1px solid #ddd;
+}
+.mock-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 18px 4px;
+  border-bottom: 1px solid #ddd;
+  color: inherit;
+  text-decoration: none;
+}
+.mock-row.recommended {
+  margin: 0 -10px;
+  padding-right: 14px;
+  padding-left: 14px;
+  border-left: 3px solid #b55732;
+  background: #faf7f4;
+}
+.mock-row:hover,
+.mock-row:focus-visible {
+  background: #f6f6f6;
+}
+.mock-row.recommended:hover,
+.mock-row.recommended:focus-visible {
+  background: #f5eee9;
+}
+.mock-row:focus-visible {
+  outline: 2px solid #555;
+  outline-offset: 2px;
+}
+.mock-row h2 {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 600;
+}
+.mock-row h2 small {
+  display: inline-block;
+  margin-left: 7px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: #b55732;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  vertical-align: 2px;
+}
+.mock-row p {
+  margin: 0;
+  color: #666;
+  font-size: 13px;
+}
+.mock-row span {
+  flex: 0 0 auto;
+  color: #888;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  white-space: nowrap;
+}
+@media (max-width: 520px) {
+  .mock-index {
+    width: min(100% - 28px, 720px);
+    padding: 32px 0;
+  }
+  .mock-row {
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 2px;
+    flex-direction: column;
+  }
+  .mock-row.recommended {
+    margin: 0 -7px;
+    padding-right: 9px;
+    padding-left: 9px;
+  }
+  .mock-row span {
+    font-size: 10px;
+  }
+}

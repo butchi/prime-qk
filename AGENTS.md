@@ -8,6 +8,7 @@
 - `apps/web-console`: Prime QK Console。既存の `_lib` もアプリ内で管理する。
 - `apps/kantan`: カンタン素数大富豪。ブラウザ版・CLI・テストを含む。
 - `apps/db`: 数の一覧・検索サイトの土台。Vue 3 + TypeScript + Vite を使用する。
+- `apps/gamelab`: GAME LAB。素数大富豪ライクな6種類のカードゲーム集。Vue 3 + TypeScript + Vite を使用する。
 - `packages/catalog`: 数のカタログの型・生成・検索処理とデータ。
   ジョーカーなし・1〜4枚は全ランク、5〜6枚はT・J・Q・Kのみを収録する。
   各ランク4枚まで。試し割りで確定判定し、5〜6枚の限定収録を画面と出力で明示する。
@@ -53,7 +54,7 @@
   アプリや共通パッケージの中には作らない。
 - 実行時ライブラリは `dependencies`、型定義・コンパイラ・ビルドツールは
   `devDependencies` に配置する。
-- Console は Vite 5、Kantan と DB は Vite 6 を使用する。
+- Console は Vite 5、Kantan・DB・GAME LAB は Vite 6 を使用する。
   バージョンを無理に統一せず、ルートの `overrides` を変更するときは両系統を検証する。
 - カタログの整数値は、精度を失わないよう十進整数文字列で表現する。
   数学的な素数・合成数の分類と、ゲーム上の使用可否は別に扱う。
@@ -65,9 +66,11 @@ npm ci
 npm run dev
 npm run dev --workspace=@prime-qk/kantan -- --port 5174 --strictPort
 npm run dev --workspace=@prime-qk/db -- --port 5175 --strictPort
+npm run dev --workspace=@prime-qk/gamelab -- --port 5176 --strictPort
 ```
 
 - ルートの `npm run dev` と `npm run preview` は Console 用。
+  `npm run build` は全ワークスペースをビルドする。
   各アプリを同時起動する場合は別ターミナル・別ポートを使用する。
 - 変更対象に対応する最小限の型チェック・ビルド・テストを実行する。
   共通設定や依存関係を変更した場合は、影響するワークスペースも確認する。
@@ -78,12 +81,15 @@ npm run build --workspace=@prime-qk/catalog
 npm run test --workspace=@prime-qk/catalog
 npm run generate --workspace=@prime-qk/catalog
 npm run test --workspace=@prime-qk/kantan
+npm run test --workspace=@prime-qk/gamelab
+npm run build --workspace=@prime-qk/gamelab
 npm run build
 ```
 
 - UI の変更は localhost で画面表示と主要操作を確認する。
 - 詳細な起動方法・依存関係・公開設定は [README.md](./README.md)、
   Kantan 固有の仕様は [apps/kantan/README.md](./apps/kantan/README.md) を参照する。
+  GAME LAB 固有の構成・公開設定は [apps/gamelab/README.md](./apps/gamelab/README.md) を参照する。
 
 ### 初期構築とコミット
 

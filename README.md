@@ -11,7 +11,8 @@ prime-qk/
 ├── apps/
 │   ├── web-console/  # Prime QK Console (including the existing _lib)
 │   ├── kantan/       # Kantan Sosu Daifugo (Vue app and CLI)
-│   └── db/           # Number catalog and search site (Vue app)
+│   ├── db/           # Number catalog and search site (Vue app)
+│   └── gamelab/      # GAME LAB, six experimental card games (Vue app)
 ├── packages/
 │   └── catalog/      # Shared catalog types, data, generation, and search
 ├── scripts/          # Data generation scripts
@@ -63,6 +64,25 @@ npm run test --workspace=@prime-qk/kantan
 
 See [the Kantan README](apps/kantan/README.md) for app-specific settings and
 import provenance. Shared logic remains inside each app for now.
+
+### GAME LAB
+
+Six experimental card games imported from `butchi/2026-07-horo`.
+Run these commands from the repository root:
+
+```sh
+npm run dev --workspace=@prime-qk/gamelab -- --port 5176 --strictPort
+npm run test --workspace=@prime-qk/gamelab
+npm run build --workspace=@prime-qk/gamelab
+npm run preview --workspace=@prime-qk/gamelab -- --port 4177 --strictPort
+```
+
+The build checks all game sources and outputs a static SPA to `apps/gamelab/dist`.
+Tests include the root suite and every game's existing suite. See
+[the GAME LAB README](apps/gamelab/README.md) for routes, MIT license and import
+provenance, environment settings, and the separate Cloudflare Pages project settings.
+Use `npm run build --workspace=@prime-qk/gamelab` as the Pages build command,
+leave its root directory empty, and set its output directory to `apps/gamelab/dist`.
 
 ### Number catalog site
 

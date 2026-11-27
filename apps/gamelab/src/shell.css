@@ -1,0 +1,31 @@
+.site-home-link {
+  position: fixed;
+  z-index: 9999;
+  top: 14px;
+  left: 14px;
+  padding: 9px 13px;
+  border: 1px solid #ffffff42;
+  border-radius: 30px;
+  background: #081225dd;
+  backdrop-filter: blur(8px);
+  color: #fff;
+  text-decoration: none;
+  font:
+    700 10px "DM Sans",
+    sans-serif;
+  letter-spacing: 0.12em;
+  box-shadow: 0 6px 18px #0004;
+}
+
+.site-home-link:hover,
+.site-home-link:focus-visible {
+  background: #e7bf5e;
+  color: #14213a;
+}
+
+@media (max-width: 560px) {
+  .site-home-link {
+    top: 8px;
+    left: 8px;
+  }
+}

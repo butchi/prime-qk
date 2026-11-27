@@ -11,7 +11,8 @@ prime-qk/
 ├── apps/
 │   ├── web-console/  # Prime QK Console（既存の _lib を含む）
 │   ├── kantan/       # カンタン素数大富豪（ブラウザ版・CLI）
-│   └── db/           # 数のカタログ・検索サイト（Vue アプリ）
+│   ├── db/           # 数のカタログ・検索サイト（Vue アプリ）
+│   └── gamelab/      # GAME LAB、6種類の実験的なカードゲーム（Vue アプリ）
 ├── packages/
 │   └── catalog/      # 共通のカタログ型・データ・生成・検索処理
 ├── scripts/          # データ生成スクリプト
@@ -55,6 +56,26 @@ npm run test --workspace=@prime-qk/kantan
 アプリ固有の設定と取り込み元については
 [カンタンの README](./apps/kantan/README.md) を参照してください。
 既存のゲームロジックは、現時点では各アプリ内で管理しています。
+
+### GAME LAB
+
+`butchi/2026-07-horo` から取り込んだ、6種類の実験的なカードゲーム集です。
+リポジトリのルートから実行してください。
+
+```sh
+npm run dev --workspace=@prime-qk/gamelab -- --port 5176 --strictPort
+npm run test --workspace=@prime-qk/gamelab
+npm run build --workspace=@prime-qk/gamelab
+npm run preview --workspace=@prime-qk/gamelab -- --port 4177 --strictPort
+```
+
+ビルド時に全ゲームの型チェックを行い、静的 SPA を `apps/gamelab/dist` に出力します。
+テストはアプリ直下と各ゲームの既存テストをまとめて実行します。
+URL 一覧・MIT ライセンスと取り込み元・環境変数・Cloudflare Pages の設定は
+[GAME LAB の README](apps/gamelab/README.md) を参照してください。
+別の Pages プロジェクトで、ビルドコマンドを
+`npm run build --workspace=@prime-qk/gamelab`、ルートを空欄、
+出力先を `apps/gamelab/dist` に設定します。
 
 ### 数のカタログ・検索サイト
 

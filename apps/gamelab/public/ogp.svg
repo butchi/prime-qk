@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">
+  <rect width="1280" height="800" fill="#101b31"/>
+  <g fill="none" stroke="#ffffff12" stroke-width="2">
+    <path d="M0 160h1280M0 320h1280M0 480h1280M0 640h1280M160 0v800M320 0v800M480 0v800M640 0v800M800 0v800M960 0v800M1120 0v800"/>
+  </g>
+  <g transform="translate(945 340) rotate(12)">
+    <rect x="-100" y="-145" width="200" height="290" rx="18" fill="#f8fafc"/>
+    <text x="0" y="25" fill="#101b31" text-anchor="middle" font-family="sans-serif" font-size="90" font-weight="700">QK</text>
+    <path d="M-66-105h42M-45-126v42M45 105h42" stroke="#b55732" stroke-width="9" stroke-linecap="round"/>
+  </g>
+  <text x="90" y="210" fill="#e7bf5e" font-family="sans-serif" font-size="28" letter-spacing="6">PRIME QK</text>
+  <text x="84" y="350" fill="#fff" font-family="sans-serif" font-size="112" font-weight="700" letter-spacing="1">GAME LAB</text>
+  <text x="90" y="425" fill="#d7deed" font-family="sans-serif" font-size="38">カードゲームの実験室</text>
+  <text x="90" y="560" fill="#aab8ce" font-family="sans-serif" font-size="27">九九・素数・四則演算で遊ぶ、6つのゲーム</text>
+  <text x="90" y="708" fill="#e7bf5e" font-family="sans-serif" font-size="28">gamelab.primeqk.butchi.jp</text>
+</svg>
